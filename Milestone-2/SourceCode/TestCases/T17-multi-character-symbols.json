@@ -1,0 +1,38 @@
+{
+  "id": "T17",
+  "category": "Edge case",
+  "title": "Multi-character symbols",
+  "machine": "Σ = {go, stop}, 3 states",
+  "input": "go stop go",
+  "expected": "2 states; the string is accepted",
+  "dfa": {
+    "states": [
+      "idle",
+      "moving",
+      "moving2"
+    ],
+    "alphabet": [
+      "go",
+      "stop"
+    ],
+    "start": "idle",
+    "finals": [
+      "moving",
+      "moving2"
+    ],
+    "delta": {
+      "idle": {
+        "go": "moving",
+        "stop": "idle"
+      },
+      "moving": {
+        "go": "moving2",
+        "stop": "idle"
+      },
+      "moving2": {
+        "go": "moving",
+        "stop": "idle"
+      }
+    }
+  }
+}

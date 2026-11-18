@@ -1,0 +1,37 @@
+{
+  "id": "T12",
+  "category": "Edge case",
+  "title": "Already minimal DFA",
+  "machine": "Strings ending in \"ab\", 3 states",
+  "input": "—",
+  "expected": "Unchanged: 3 states, nothing merged",
+  "dfa": {
+    "states": [
+      "S",
+      "X",
+      "Y"
+    ],
+    "alphabet": [
+      "a",
+      "b"
+    ],
+    "start": "S",
+    "finals": [
+      "Y"
+    ],
+    "delta": {
+      "S": {
+        "a": "X",
+        "b": "S"
+      },
+      "X": {
+        "a": "X",
+        "b": "Y"
+      },
+      "Y": {
+        "a": "X",
+        "b": "S"
+      }
+    }
+  }
+}

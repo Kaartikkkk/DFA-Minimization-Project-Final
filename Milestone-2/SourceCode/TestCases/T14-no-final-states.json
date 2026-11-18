@@ -1,0 +1,30 @@
+{
+  "id": "T14",
+  "category": "Edge case",
+  "title": "No final states (∅)",
+  "machine": "2 states, none final",
+  "input": "—",
+  "expected": "1 state",
+  "dfa": {
+    "states": [
+      "A",
+      "B"
+    ],
+    "alphabet": [
+      "0",
+      "1"
+    ],
+    "start": "A",
+    "finals": [],
+    "delta": {
+      "A": {
+        "0": "B",
+        "1": "A"
+      },
+      "B": {
+        "0": "A",
+        "1": "B"
+      }
+    }
+  }
+}

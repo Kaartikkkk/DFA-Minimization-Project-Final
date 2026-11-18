@@ -1,0 +1,34 @@
+{
+  "id": "T05",
+  "category": "Edge case",
+  "title": "Missing transitions (incomplete δ)",
+  "machine": "a*b with δ(Q, ·) undefined; R unreachable",
+  "input": "—",
+  "expected": "Explicit dead state added; R removed; 3 states",
+  "dfa": {
+    "states": [
+      "P",
+      "Q",
+      "R"
+    ],
+    "alphabet": [
+      "a",
+      "b"
+    ],
+    "start": "P",
+    "finals": [
+      "Q"
+    ],
+    "delta": {
+      "P": {
+        "a": "P",
+        "b": "Q"
+      },
+      "Q": {},
+      "R": {
+        "a": "Q",
+        "b": "P"
+      }
+    }
+  }
+}

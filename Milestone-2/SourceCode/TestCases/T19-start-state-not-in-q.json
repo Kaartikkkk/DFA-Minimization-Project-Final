@@ -1,0 +1,54 @@
+{
+  "id": "T19",
+  "category": "Invalid input",
+  "title": "Start state not in Q",
+  "machine": "Worked example with q₀ = \"z\"",
+  "input": "—",
+  "expected": "Error: start state \"z\" is not in the state list",
+  "dfa": {
+    "states": [
+      "q0",
+      "q1",
+      "q2",
+      "q3",
+      "q4",
+      "q5"
+    ],
+    "alphabet": [
+      "0",
+      "1"
+    ],
+    "start": "z",
+    "finals": [
+      "q2",
+      "q3",
+      "q4"
+    ],
+    "delta": {
+      "q0": {
+        "0": "q1",
+        "1": "q2"
+      },
+      "q1": {
+        "0": "q0",
+        "1": "q3"
+      },
+      "q2": {
+        "0": "q4",
+        "1": "q5"
+      },
+      "q3": {
+        "0": "q4",
+        "1": "q5"
+      },
+      "q4": {
+        "0": "q4",
+        "1": "q5"
+      },
+      "q5": {
+        "0": "q5",
+        "1": "q5"
+      }
+    }
+  }
+}

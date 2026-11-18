@@ -1,0 +1,41 @@
+{
+  "id": "T10",
+  "category": "Minimization",
+  "title": "Three-symbol alphabet",
+  "machine": "Strings over {a,b,c} ending in c, 3 states",
+  "input": "—",
+  "expected": "2 states; S≡S2",
+  "dfa": {
+    "states": [
+      "S",
+      "S2",
+      "C"
+    ],
+    "alphabet": [
+      "a",
+      "b",
+      "c"
+    ],
+    "start": "S",
+    "finals": [
+      "C"
+    ],
+    "delta": {
+      "S": {
+        "a": "S2",
+        "b": "S",
+        "c": "C"
+      },
+      "S2": {
+        "a": "S",
+        "b": "S2",
+        "c": "C"
+      },
+      "C": {
+        "a": "S",
+        "b": "S2",
+        "c": "C"
+      }
+    }
+  }
+}

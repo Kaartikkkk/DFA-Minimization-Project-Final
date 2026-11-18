@@ -1,0 +1,43 @@
+{
+  "id": "T09",
+  "category": "Minimization",
+  "title": "Even number of a's, counted mod 4",
+  "machine": "4 states p0–p3",
+  "input": "—",
+  "expected": "2 states; p0≡p2 and p1≡p3",
+  "dfa": {
+    "states": [
+      "p0",
+      "p1",
+      "p2",
+      "p3"
+    ],
+    "alphabet": [
+      "a",
+      "b"
+    ],
+    "start": "p0",
+    "finals": [
+      "p0",
+      "p2"
+    ],
+    "delta": {
+      "p0": {
+        "a": "p1",
+        "b": "p0"
+      },
+      "p1": {
+        "a": "p2",
+        "b": "p1"
+      },
+      "p2": {
+        "a": "p3",
+        "b": "p2"
+      },
+      "p3": {
+        "a": "p0",
+        "b": "p3"
+      }
+    }
+  }
+}

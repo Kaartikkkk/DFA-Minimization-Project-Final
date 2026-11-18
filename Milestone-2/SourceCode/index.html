@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutomataFlow · DFA Minimizer</title>
+  <meta name="description"
+    content="Professional DFA Minimizer — simplify finite automata into their minimal equivalent form with interactive visualization and verification.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <!-- ======================= TOP NAVIGATION BAR ======================= -->
+  <header class="top-nav">
+    <div class="top-inner">
+      <div class="brand">
+        <div class="logo-wrapper">
+          <svg class="brand-logo" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="36" height="36" rx="10" fill="url(#brandLogoGrad)" />
+            <circle cx="12" cy="18" r="3.5" stroke="#ffffff" stroke-width="2" fill="none" />
+            <circle cx="24" cy="12" r="3.5" stroke="#ffffff" stroke-width="2" fill="none" />
+            <circle cx="24" cy="24" r="3.5" stroke="#ffffff" stroke-width="2" fill="none" />
+            <path d="M15 16.5L21 13.5M15 19.5L21 22.5" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" />
+            <defs>
+              <linearGradient id="brandLogoGrad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#6366f1" />
+                <stop offset="0.5" stop-color="#7c3aed" />
+                <stop offset="1" stop-color="#8b5cf6" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <div class="brand-name">AutomataFlow</div>
+          <p class="brand-sub">DFA Minimizer</p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs matching Reference Image -->
+      <nav class="nav-tabs" aria-label="Sections">
+        <button class="nav-tab active" data-tab="sim">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+          <span>Minimize DFA</span>
+        </button>
+
+        <button class="nav-tab" data-tab="tests">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Test Input</span>
+          <span id="testBadge" class="tab-badge" hidden>30/30</span>
+        </button>
+
+        <button class="nav-tab" data-tab="design">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span>Documentation</span>
+        </button>
+      </nav>
+
+      <!-- Hidden focus button so keyboard shortcut 'F' works without DOM error -->
+      <button id="focusBtn" hidden type="button"></button>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- ======================= SECTION 1: MINIMIZE DFA (SIMULATOR) ======================= -->
+    <section id="sim" class="tab-panel">
+
+      <div class="studio-layout">
+
+        <!-- Left Sidebar: DFA Input Card -->
+        <aside id="editor" class="editor-sidebar card">
+          <div class="sidebar-header">
+            <div class="header-icon-wrap">
+              <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="4" y1="21" x2="4" y2="14"></line>
+                <line x1="4" y1="10" x2="4" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="3"></line>
+                <line x1="20" y1="21" x2="20" y2="16"></line>
+                <line x1="20" y1="12" x2="20" y2="3"></line>
+                <line x1="1" y1="14" x2="7" y2="14"></line>
+                <line x1="9" y1="8" x2="15" y2="8"></line>
+                <line x1="17" y1="16" x2="23" y2="16"></line>
+              </svg>
+            </div>
+            <div class="header-text-wrap">
+              <h2 class="card-title">DFA Input</h2>
+              <p class="card-subtitle">Enter the DFA transitions to minimize it.</p>
+            </div>
+            <div class="sidebar-options-wrapper">
+              <button id="sidebarOptionsBtn" type="button" class="btn-subtle-gear" title="Presets, algorithm & settings" aria-label="Presets and Settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="gear-icon">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- States & Alphabet Row (Side by side matching reference image) -->
+          <div class="fields-row-2">
+            <div class="field-block">
+              <label for="states" class="field-label">States</label>
+              <input id="states" type="text" class="form-input" placeholder="A, B, C, D, E, F, G, H">
+            </div>
+            <div class="field-block">
+              <label for="alphabet" class="field-label">Alphabet</label>
+              <input id="alphabet" type="text" class="form-input" placeholder="0, 1">
+            </div>
+          </div>
+
+          <!-- Transitions Table -->
+          <div class="field-block transitions-block">
+            <label class="field-label">Transitions</label>
+            <div class="table-scroll-wrapper">
+              <table id="deltaTable" class="matrix-table delta-editor-table"></table>
+            </div>
+          </div>
+
+          <!-- Minimize DFA Button (Primary CTA Gradient) -->
+          <button id="runBtn" class="btn primary cta-btn run-gradient-btn" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+            <span>Minimize DFA</span>
+          </button>
+
+          <!-- Input Message Banner -->
+          <div id="inputMsg" class="notification-banner"></div>
+
+          <!-- Presets, Algorithm, & Detailed State Config Drawer (Discreet popover / panel) -->
+          <div id="sidebarOptionsPanel" class="sidebar-options-panel" hidden>
+            <div class="options-panel-header">
+              <span class="options-title">Presets & Options</span>
+              <button id="closeOptionsBtn" type="button" class="btn-close-sm" aria-label="Close options">×</button>
+            </div>
+            
+            <div class="options-group">
+              <label class="field-label-sm">Example DFA</label>
+              <div class="quick-presets-row">
+                <button type="button" class="preset-chip active" data-preset="textbook">8 → 5</button>
+                <button type="button" class="preset-chip" data-preset="six">6 → 3</button>
+                <button type="button" class="preset-chip" data-preset="mod4">4 → 2</button>
+                <button id="newBtn" class="preset-chip" type="button">New</button>
+                <button id="randomBtn" class="preset-chip" type="button">Random</button>
+              </div>
+              <select id="preset" class="form-select select-hidden" hidden></select>
+              <p id="presetNote" class="preset-note-subtle" hidden></p>
+            </div>
+
+            <div class="options-group">
+              <label class="field-label-sm">Minimization Algorithm</label>
+              <div class="segmented-control" role="radiogroup">
+                <label class="segment-option">
+                  <input type="radio" name="method" value="tf" checked>
+                  <span class="segment-pill">Table-Filling</span>
+                </label>
+                <label class="segment-option">
+                  <input type="radio" name="method" value="pr">
+                  <span class="segment-pill">Partition Refinement</span>
+                </label>
+                <label class="segment-option">
+                  <input type="radio" name="method" value="both">
+                  <span class="segment-pill">Both</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="options-group">
+              <div class="fields-row-2">
+                <div class="field-block">
+                  <label for="startSel" class="field-label-sm">Start State</label>
+                  <select id="startSel" class="form-select"></select>
+                </div>
+                <div class="field-block">
+                  <label class="field-label-sm">Accepting States</label>
+                  <div id="finals" class="chip-group"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="options-footer-actions">
+              <input id="importFile" type="file" accept=".json,application/json" hidden>
+              <button id="importBtn" type="button" class="btn-text-sm">Import JSON</button>
+              <button id="exportBtn" type="button" class="btn-text-sm">Export JSON</button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Main Column: DFA Visualization -->
+        <div class="studio-main">
+          <div class="main-page-header">
+            <h1 class="main-heading">DFA <span class="gradient-text">Minimization</span></h1>
+            <p class="main-subtitle">Find and merge equivalent states to get the smallest DFA.</p>
+          </div>
+
+          <!-- Empty State Card (before run) -->
+          <section id="emptyState" class="card empty-state-card" hidden>
+            <div class="empty-icon-wrap">
+              <svg class="empty-svg" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="24" r="10" stroke="#cbd5e1" stroke-width="2.5" stroke-dasharray="4 4" />
+                <circle cx="32" cy="24" r="8" stroke="#7c3aed" stroke-width="2.5" />
+                <circle cx="32" cy="24" r="5" stroke="#7c3aed" stroke-width="1.5" />
+                <path d="M22 24h4" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </div>
+            <h2 class="empty-title">Ready to Minimize</h2>
+            <p class="empty-desc">Enter transitions in the sidebar or pick an example, then click <strong>Minimize DFA</strong>.</p>
+          </section>
+
+          <!-- Active Visualization Card (Matches Reference Image) -->
+          <section id="player" class="card vis-main-card">
+            <!-- Card Header matching Reference Image -->
+            <div class="vis-card-header">
+              <div class="vis-header-left">
+                <div class="target-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="6"></circle>
+                    <circle cx="12" cy="12" r="2"></circle>
+                  </svg>
+                </div>
+                <h2 id="graphLabel" class="vis-title">Original DFA</h2>
+                <span id="stateCountBadge" class="vis-count-badge">8 States</span>
+              </div>
+
+              <div class="vis-header-right">
+                <span id="startBadge" class="header-pill start-pill">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="pill-icon"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  <span>Start: <b id="startBadgeVal">A</b></span>
+                </span>
+                <span id="acceptingBadge" class="header-pill accept-pill">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pill-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>Accepting: <b id="acceptBadgeVal">C</b></span>
+                </span>
+                <button id="expandBtn" class="btn secondary compact-btn icon-only" type="button" title="Expand diagram (E)" hidden>
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <polyline points="9 21 3 21 3 15"></polyline>
+                    <line x1="21" y1="3" x2="14" y2="10"></line>
+                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Split Viewports: Diagram Canvas + Working Table -->
+            <div class="studio-viewports">
+              <!-- Left: State Diagram Canvas -->
+              <div class="viewport-canvas-box">
+                <div id="graphMain" class="diagram-stage"></div>
+              </div>
+
+              <!-- Right: Transition Table Card -->
+              <div class="viewport-table-box">
+                <div class="table-box-header">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="table-icon">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="3" y1="15" x2="21" y2="15"></line>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                    <line x1="15" y1="3" x2="15" y2="21"></line>
+                  </svg>
+                  <h3 id="workLabel" class="table-box-title">Transition Table</h3>
+                </div>
+                <div id="work" class="matrix-content"></div>
+              </div>
+            </div>
+
+            <!-- Playback Controls & Progress Bar -->
+            <div class="playback-container">
+              <!-- Executive KPI Strip -->
+              <div id="summary" class="kpi-strip"></div>
+
+              <!-- Phase Stepper -->
+              <ol id="timeline" class="phase-stepper" aria-label="Minimization Phases"></ol>
+
+              <!-- Playback Controller Toolbar -->
+              <div class="playback-bar">
+                <div class="playback-info">
+                  <span id="stepCount" class="step-badge-text">Step 1 of 1</span>
+                  <div id="playHint" class="play-action-hint">
+                    <span class="play-pulse-dot" aria-hidden="true"></span>
+                    <span>Click <strong>Play</strong> to animate</span>
+                  </div>
+                </div>
+
+                <div class="playback-controls">
+                  <button id="firstBtn" class="btn icon-square" type="button" title="First step (Home)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="6" y1="6" x2="6" y2="18"></line>
+                      <polyline points="18 18 12 12 18 6"></polyline>
+                    </svg>
+                  </button>
+                  <button id="prevBtn" class="btn icon-square" type="button" title="Previous step (←)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                  </button>
+                  <button id="playBtn" class="btn primary play-button" type="button">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <span>Play</span>
+                  </button>
+                  <button id="nextBtn" class="btn icon-square" type="button" title="Next step (→)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
+                  <button id="lastBtn" class="btn icon-square" type="button" title="Last step (End)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="18" y2="18"></line>
+                      <polyline points="6 18 12 12 6 6"></polyline>
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="speed-control-group">
+                  <span class="speed-label">Speed:</span>
+                  <select id="speed" class="form-select speed-select">
+                    <option value="2200">Slow</option>
+                    <option value="1400" selected>Normal</option>
+                    <option value="600">Fast</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Progress Track -->
+              <div class="progress-track" aria-hidden="true">
+                <div id="progress" class="progress-fill"></div>
+              </div>
+
+              <!-- Step Narrative -->
+              <div class="step-narrative">
+                <h2 id="stepTitle" class="step-title">Step Title</h2>
+                <div id="stepText" class="step-explanation"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Hidden elements needed by app.js -->
+          <ol id="stepList" hidden></ol>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= SECTION 2: TEST INPUT & SUITE ======================= -->
+    <section id="tests" class="tab-panel" hidden>
+      <div class="tests-layout">
+
+        <!-- Interactive String Verification Card -->
+        <section id="tester" class="card utility-card">
+          <div class="utility-header">
+            <div class="header-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sidebar-icon">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </div>
+            <div>
+              <h2 class="card-title">Test String Input</h2>
+              <p class="card-subtitle">Verify that both original and minimized machines produce identical acceptance results.</p>
+            </div>
+          </div>
+
+          <div class="tester-input-bar">
+            <input id="testInput" type="text" class="form-input mono" placeholder="Enter string (e.g. 0110)"
+              aria-label="Input string to test">
+            <button id="testBtn" class="btn primary run-gradient-btn" type="button">Test String</button>
+          </div>
+
+          <div id="samples" class="sample-chips-bar"></div>
+          <div id="testOut" class="tester-output-box"></div>
+
+          <div class="table-scroll-wrapper">
+            <table id="testLog" class="log-table" hidden>
+              <thead>
+                <tr>
+                  <th>String</th>
+                  <th>Original</th>
+                  <th>Minimized</th>
+                  <th>Match</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Automated Test Suite Card -->
+        <div class="card tests-head-card">
+          <div class="tests-head-info">
+            <h2 class="card-title">Automated Verification Suite</h2>
+            <p class="card-subtitle">30 comprehensive automated tests validating string acceptance, minimization, edge cases, and input handling.</p>
+          </div>
+          <div class="tests-actions-group">
+            <button id="runTestsBtn" class="btn primary run-gradient-btn" type="button">Run All Tests</button>
+            <button id="csvBtn" class="btn secondary" type="button" disabled>Download CSV</button>
+          </div>
+        </div>
+
+        <!-- Summary KPI cards for test suite -->
+        <div id="testSummary" class="kpi-strip"></div>
+
+        <!-- Filter Pills & Search -->
+        <div class="test-controls-bar">
+          <div id="testFilters" class="filter-pills-group" role="group" aria-label="Filter test cases by category">
+          </div>
+          <div class="search-box-wrap">
+            <input id="testSearchInput" type="text" class="form-input search-input" placeholder="Search tests..."
+              aria-label="Search test cases">
+          </div>
+        </div>
+
+        <!-- Test Cases Data Grid -->
+        <div class="card table-card">
+          <div class="table-scroll-wrapper">
+            <table class="grid-table tests-table">
+              <thead>
+                <tr>
+                  <th style="width: 60px;">ID</th>
+                  <th>Test Case</th>
+                  <th>Input</th>
+                  <th>Expected</th>
+                  <th>Actual</th>
+                  <th style="width: 90px;">Status</th>
+                  <th style="width: 70px;"></th>
+                </tr>
+              </thead>
+              <tbody id="testRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================= SECTION 3: DOCUMENTATION ======================= -->
+    <section id="design" class="tab-panel" hidden>
+      <div class="doc-layout">
+
+        <!-- Sticky Table of Contents Sidebar -->
+        <nav class="toc-sidebar" aria-label="Documentation sections">
+          <div class="toc-card card">
+            <h3 class="toc-title">Documentation</h3>
+            <ol class="toc-list">
+              <li>
+                <a href="#d-problem" class="toc-link">
+                  <span class="q-node">1</span>
+                  <div class="toc-link-text">
+                    <span class="toc-link-title">Overview</span>
+                    <span class="toc-link-meta">What & Why</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a href="#d-tools" class="toc-link">
+                  <span class="q-node">2</span>
+                  <div class="toc-link-text">
+                    <span class="toc-link-title">Tools & Features</span>
+                    <span class="toc-link-meta">Comparison</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a href="#d-algo" class="toc-link">
+                  <span class="q-node">3</span>
+                  <div class="toc-link-text">
+                    <span class="toc-link-title">How It Works</span>
+                    <span class="toc-link-meta">4-step process</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a href="#d-manual" class="toc-link">
+                  <span class="q-node">4</span>
+                  <div class="toc-link-text">
+                    <span class="toc-link-title">Worked Example</span>
+                    <span class="toc-link-meta">Interactive Demo</span>
+                  </div>
+                </a>
+              </li>
+            </ol>
+            <button id="printBtn" class="btn primary cta-btn run-gradient-btn" type="button" style="margin-top: 14px;">
+              <span>Save as PDF</span>
+            </button>
+            <p class="toc-print-note">Prints this documentation page.</p>
+          </div>
+        </nav>
+
+        <!-- Main Document Body (Clean Presentation Cards) -->
+        <article class="doc-body">
+
+          <!-- Card 1: Problem Statement & Motivation -->
+          <section id="d-problem" class="card doc-card">
+            <div class="doc-header-pill">
+              <span class="doc-badge-num">1</span>
+              <div>
+                <h2 class="doc-section-title">Overview</h2>
+                <p class="doc-section-sub">Why DFA minimization matters</p>
+              </div>
+            </div>
+
+            <p class="doc-lead">
+              Many DFAs have duplicate or unnecessary states that do the exact same thing. Minimizing a DFA finds these matching states and combines them together, creating the smallest machine that accepts the exact same language.
+            </p>
+
+            <div class="feature-card-grid">
+              <div class="feature-card">
+                <h4 class="feature-card-title">Step-by-Step Visualizer</h4>
+                <p class="feature-card-desc">Watch every single step with live state diagrams and working tables so you always understand why a state was merged or removed.</p>
+              </div>
+              <div class="feature-card">
+                <h4 class="feature-card-title">Two Standard Algorithms</h4>
+                <p class="feature-card-desc">Supports both Table-Filling (Myhill-Nerode) and Partition Refinement (Moore), with cross-comparison to confirm they match.</p>
+              </div>
+              <div class="feature-card">
+                <h4 class="feature-card-title">Automated Verification</h4>
+                <p class="feature-card-desc">Automatically verifies that the original and minimized DFAs accept and reject the exact same strings on hundreds of sample words.</p>
+              </div>
+              <div class="feature-card">
+                <h4 class="feature-card-title">Zero Installation</h4>
+                <p class="feature-card-desc">Built with pure HTML, CSS, and modern JavaScript. Opens instantly in any web browser without servers or setup.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Card 2: Tools Comparison & Performance -->
+          <section id="d-tools" class="card doc-card">
+            <div class="doc-header-pill">
+              <span class="doc-badge-num">2</span>
+              <div>
+                <h2 class="doc-section-title">Comparison & Performance</h2>
+                <p class="doc-section-sub">How AutomataFlow compares to existing tools</p>
+              </div>
+            </div>
+
+            <div class="table-scroll-wrapper">
+              <table class="matrix-table clean-table">
+                <thead>
+                  <tr>
+                    <th>Feature</th>
+                    <th>AutomataFlow</th>
+                    <th>JFLAP</th>
+                    <th>Automata.js</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Platform</strong></td>
+                    <td><span class="badge ok">Web (Zero Install)</span></td>
+                    <td>Java Desktop (Needs JRE)</td>
+                    <td>Node.js library (No UI)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Minimization Methods</strong></td>
+                    <td><span class="badge ok">Table-Filling & Partition</span></td>
+                    <td>Partition only</td>
+                    <td>Hopcroft only</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Step-by-Step Visualization</strong></td>
+                    <td><span class="badge ok">Full Animation & Table</span></td>
+                    <td>Partial</td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Dual-DFA String Testing</strong></td>
+                    <td><span class="badge ok">Live side-by-side</span></td>
+                    <td>Single DFA only</td>
+                    <td>Command line</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Verification Suite</strong></td>
+                    <td><span class="badge ok">30 / 30 Automated Tests</span></td>
+                    <td>None</td>
+                    <td>Unit tests</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Card 3: 4-Step Process -->
+          <section id="d-algo" class="card doc-card">
+            <div class="doc-header-pill">
+              <span class="doc-badge-num">3</span>
+              <div>
+                <h2 class="doc-section-title">How Minimization Works</h2>
+                <p class="doc-section-sub">A simple 4-step walkthrough</p>
+              </div>
+            </div>
+
+            <div class="workflow-cards-grid">
+              <div class="workflow-card">
+                <span class="step-badge">Phase 1</span>
+                <h4 class="wf-title">Remove Unreachable States</h4>
+                <p class="wf-desc">Starts at the initial state and visits all reachable states. Any state that cannot be reached is discarded.</p>
+              </div>
+              <div class="workflow-card">
+                <span class="step-badge">Phase 2</span>
+                <h4 class="wf-title">Find Matching States</h4>
+                <p class="wf-desc">Compares state pairs. States that produce identical outcomes on all symbols are marked as equivalent.</p>
+              </div>
+              <div class="workflow-card">
+                <span class="step-badge">Phase 3</span>
+                <h4 class="wf-title">Merge State Groups</h4>
+                <p class="wf-desc">Combines equivalent states into single composite states, rewiring all transitions cleanly.</p>
+              </div>
+              <div class="workflow-card">
+                <span class="step-badge">Phase 4</span>
+                <h4 class="wf-title">Verify Equivalence</h4>
+                <p class="wf-desc">Tests strings through both machines to mathematically verify that the minimized DFA accepts the exact same language.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Card 4: Worked Example & Live Test Matrix -->
+          <section id="d-manual" class="card doc-card">
+            <div class="doc-header-pill">
+              <span class="doc-badge-num">4</span>
+              <div>
+                <h2 class="doc-section-title">Worked Example & Live Results</h2>
+                <p class="doc-section-sub">6 states minimized to 3 states</p>
+              </div>
+            </div>
+
+            <p>Here is a real example showing a 6-state DFA simplified into 3 states:</p>
+
+            <div class="example-diagrams-grid">
+              <div class="example-diagram-box">
+                <h4>Original DFA (6 States)</h4>
+                <div id="docInput" class="diagram-stage small"></div>
+              </div>
+              <div class="example-diagram-box">
+                <h4>Minimized DFA (3 States)</h4>
+                <div id="docMin" class="diagram-stage small"></div>
+              </div>
+            </div>
+
+            <button id="docLoadSix" class="btn secondary" type="button" style="margin-top: 12px;">
+              <span>Open this example in Simulator</span>
+            </button>
+
+            <h3 style="margin-top: 24px; margin-bottom: 8px;">Preset Minimization Verification</h3>
+            <div class="table-scroll-wrapper">
+              <table class="matrix-table clean-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Automaton Example</th>
+                    <th>Expected Size</th>
+                    <th>Result</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="docTests"></tbody>
+              </table>
+            </div>
+          </section>
+
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Fullscreen / Expand Dialog for Diagram -->
+  <dialog id="graphDialog" class="graph-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span id="dlgStep" class="modal-badge">State Diagram</span>
+          <h2 id="dlgTitle" class="modal-title">Expanded View</h2>
+        </div>
+        <button id="dlgClose" class="btn icon-square" type="button" aria-label="Close modal">✕</button>
+      </div>
+      <div id="graphBig" class="diagram-stage modal-stage"></div>
+    </div>
+  </dialog>
+
+  <!-- Application Scripts -->
+  <script src="js/algorithms.js"></script>
+  <script src="js/presets.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/testcases.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
+                <span class="kbd-hint">Shortcuts:</span>
+                <span><kbd>←</kbd> <kbd>→</kbd> Step</span>
+                <span><kbd>Space</kbd> Play/Pause</span>
+                <span><kbd>F</kbd> Sidebar</span>
+                <span><kbd>E</kbd> Expand</span>
+              </div>
+            </section>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= SECTION 2: TEST CASES (Milestone 2) ======================= -->
+    <section id="tests" class="tab-panel" hidden>
+      <div class="tests-layout">
+
+        <div class="card tests-head-card">
+          <div class="tests-head-info">
+            <h2 class="card-title">Automated Test Suite</h2>
+            <p class="card-subtitle">30 automated tests verifying string acceptance, minimization, edge cases, and input
+              validation.</p>
+          </div>
+          <div class="tests-actions-group">
+            <button id="runTestsBtn" class="btn primary" type="button">Run All Tests</button>
+            <button id="csvBtn" class="btn secondary" type="button" disabled>Download CSV</button>
+          </div>
+        </div>
+
+        <!-- Summary KPI cards for test suite -->
+        <div id="testSummary" class="kpi-strip"></div>
+
+        <!-- Filter Pills & Search -->
+        <div class="test-controls-bar">
+          <div id="testFilters" class="filter-pills-group" role="group" aria-label="Filter test cases by category">
+          </div>
+          <div class="search-box-wrap">
+            <input id="testSearchInput" type="text" class="form-input search-input" placeholder="Search tests..."
+              aria-label="Search test cases">
+          </div>
+        </div>
+
+        <!-- Test Cases Data Grid -->
+        <div class="card table-card">
+          <div class="table-scroll-wrapper">
+            <table class="grid-table tests-table">
+              <thead>
+                <tr>
+                  <th style="width: 60px;">ID</th>
+                  <th>Test Case</th>
+                  <th>Input</th>
+                  <th>Expected</th>
+                  <th>Actual</th>
+                  <th style="width: 90px;">Status</th>
+                  <th style="width: 70px;"></th>
+                </tr>
+              </thead>
+              <tbody id="testRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================= SECTION 3: DOCUMENTATION ======================= -->
+    <section id="design" class="tab-panel" hidden>
+      <div class="doc-layout">
+
+        <!-- Sticky Table of Contents Sidebar -->
+        <nav class="toc-sidebar" aria-label="Documentation sections">
+          <div class="toc-card card">
+            <h3 class="toc-title">Documentation</h3>
+            <ol class="toc-list">
+              <li>
+                <a href="#d-problem" class="toc-link">
+                  <span class="q-node">1</span>
+                  <div class="toc-link-text">
+                    <span class="toc-link-title">Overview</span>
+                    <span class="toc-link-meta">What & Why</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a href="#d-tools" class="toc-link">
+                  <span class="q-node">2</span>
+                  <div class="toc-link-text">
+                    <span class="toc-link-title">Tools & Features</span>
+                    <span class="toc-link-meta">Comparison</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a href="#d-design" class="toc-link">
+                  <span class="q-node">3</span>
+                  <div class="toc-link-text">
+                    <span class="toc-link-title">How It Works</span>
+                    <span class="toc-link-meta">4-step process</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a href="#d-algo" class="toc-link">
+                  <span class="q-node">4</span>
+                  <div class="toc-link-text">
+                    <span class="toc-link-title">Worked Example</span>
+                    <span class="toc-link-meta">Interactive Demo</span>
+                  </div>
+                </a>
+              </li>
+            </ol>
+            <button id="printBtn" class="btn primary full-width" type="button">Save as PDF</button>
+            <p class="toc-print-hint">Prints this documentation page.</p>
+          </div>
+        </nav>
+
+        <!-- Document Content Stream -->
+        <div class="doc-body">
+
+          <!-- Cover Card -->
+          <div class="card doc-cover-card">
+            <span class="badge-chip secondary">Project Guide</span>
+            <h2 class="cover-main-title">DFA Minimization Simulator: Project Documentation</h2>
+            <p class="doc-lead-text">A visual, step-by-step educational tool that simplifies Deterministic Finite
+              Automata (DFA) into their smallest equivalent forms.</p>
+
+            <!-- Authors Table -->
+            <table class="grid-table team-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Enrollment No.</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Snehil</strong></td>
+                  <td><code class="mono-code">S24CSEU0551</code></td>
+                  <td>Input Validation & Reachable States</td>
+                </tr>
+                <tr>
+                  <td><strong>Tanya Sinha</strong></td>
+                  <td><code class="mono-code">S24CSEU0583</code></td>
+                  <td>Table-Filling Algorithm</td>
+                </tr>
+                <tr>
+                  <td><strong>Suhani</strong></td>
+                  <td><code class="mono-code">S24CSEU0567</code></td>
+                  <td>Partition Refinement & State Merging</td>
+                </tr>
+                <tr>
+                  <td><strong>Kartik Lamba</strong></td>
+                  <td><code class="mono-code">S24CSEU0642</code></td>
+                  <td>UI Design, Visualizer & Testing</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 1: Overview -->
+          <section id="d-problem" class="card doc-section">
+            <header class="doc-section-head">
+              <span class="q-large">1</span>
+              <div>
+                <h2 class="doc-section-title">Overview</h2>
+                <p class="doc-section-meta">Why DFA minimization matters</p>
+              </div>
+            </header>
+
+            <p class="doc-prose">
+              Many DFAs have duplicate or unnecessary states that do the exact same thing. Minimizing a DFA finds these
+              matching states and combines them together, creating the smallest machine that accepts the exact same
+              language.
+            </p>
+
+            <div class="feature-card-grid">
+              <div class="feature-item-card">
+                <h4 class="feature-card-title">Step-by-Step Visualizer</h4>
+                <p class="feature-card-desc">Watch every single step with live state diagrams and working tables so you
+                  always understand why a state was merged or removed.</p>
+              </div>
+              <div class="feature-item-card">
+                <h4 class="feature-card-title">Two Standard Algorithms</h4>
+                <p class="feature-card-desc">Supports both Table-Filling (Myhill-Nerode) and Partition Refinement
+                  (Moore), with cross-comparison to confirm they match.</p>
+              </div>
+              <div class="feature-item-card">
+                <h4 class="feature-card-title">Automated Verification</h4>
+                <p class="feature-card-desc">Automatically verifies that the original and minimized DFAs accept and
+                  reject the exact same strings on hundreds of sample words.</p>
+              </div>
+              <div class="feature-item-card">
+                <h4 class="feature-card-title">Zero Installation</h4>
+                <p class="feature-card-desc">Built with pure HTML, CSS, and modern JavaScript. Opens instantly in any
+                  web browser without servers or setup.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 2: Tools & Feasibility -->
+          <section id="d-tools" class="card doc-section">
+            <header class="doc-section-head">
+              <span class="q-large">2</span>
+              <div>
+                <h2 class="doc-section-title">Comparison & Performance</h2>
+                <p class="doc-section-meta">How AutomataFlow compares to existing tools</p>
+              </div>
+            </header>
+
+            <div class="table-scroll-wrapper">
+              <table class="grid-table wide-table">
+                <thead>
+                  <tr>
+                    <th>Tool</th>
+                    <th>Platform</th>
+                    <th>Strengths</th>
+                    <th>Limitations</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>JFLAP</strong></td>
+                    <td>Desktop (Java)</td>
+                    <td>Popular academic tool for theory courses</td>
+                    <td>Requires Java; shows trees without pair tables or written reasons</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Automata Tutor</strong></td>
+                    <td>Web</td>
+                    <td>Auto-graded exercises for students</td>
+                    <td>Checks answers only; no interactive step-by-step solver</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Online FSM Tools</strong></td>
+                    <td>Web</td>
+                    <td>Quick diagrams and final results</td>
+                    <td>Only shows final DFA; skips intermediate tables and proofs</td>
+                  </tr>
+                  <tr class="highlight-row">
+                    <td><strong>AutomataFlow (Ours)</strong></td>
+                    <td>Any browser, offline</td>
+                    <td>Both algorithms, full step player, live verification</td>
+                    <td>Optimized for classroom DFAs (up to 30 states)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="stats-card-grid-3" style="margin-top: 18px;">
+              <div class="stat-callout">
+                <span class="stat-badge">Platform</span>
+                <div class="stat-big-number">0</div>
+                <span class="stat-caption">Dependencies</span>
+                <p>Runs offline in any modern browser without extra packages or installations.</p>
+              </div>
+              <div class="stat-callout primary">
+                <span class="stat-badge">Speed</span>
+                <div class="stat-big-number">&lt; 2 ms</div>
+                <span class="stat-caption">Execution Time</span>
+                <p>Fast polynomial-time algorithms compute results and diagrams instantly.</p>
+              </div>
+              <div class="stat-callout">
+                <span class="stat-badge">Quality</span>
+                <div class="stat-big-number">30 / 30</div>
+                <span class="stat-caption">Tests Passing</span>
+                <p>Comprehensive automated test suite covering edge cases and input validation.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 3: How It Works -->
+          <section id="d-design" class="card doc-section">
+            <header class="doc-section-head">
+              <span class="q-large">3</span>
+              <div>
+                <h2 class="doc-section-title">How It Works</h2>
+                <p class="doc-section-meta">The 4-step minimization pipeline</p>
+              </div>
+            </header>
+
+            <div class="workflow-cards-grid">
+              <div class="workflow-card">
+                <div class="workflow-number">1</div>
+                <div class="workflow-body">
+                  <h4 class="workflow-title">Input & Validation</h4>
+                  <p class="workflow-text">The user enters states, alphabet, start state, and accepting states. Any
+                    missing transitions automatically connect to a trap/dead state.</p>
+                </div>
+              </div>
+              <div class="workflow-card">
+                <div class="workflow-number">2</div>
+                <div class="workflow-body">
+                  <h4 class="workflow-title">Remove Unreachable States</h4>
+                  <p class="workflow-text">Breadth-First Search (BFS) explores all states starting from the initial
+                    state. Any state that cannot be reached is removed.</p>
+                </div>
+              </div>
+              <div class="workflow-card">
+                <div class="workflow-number">3</div>
+                <div class="workflow-body">
+                  <h4 class="workflow-title">Find Equivalent States</h4>
+                  <p class="workflow-text">The algorithm checks which states behave identically on every input. States
+                    that lead to the same outcomes are grouped together.</p>
+                </div>
+              </div>
+              <div class="workflow-card">
+                <div class="workflow-number">4</div>
+                <div class="workflow-body">
+                  <h4 class="workflow-title">Build & Verify Minimized DFA</h4>
+                  <p class="workflow-text">Each group of equivalent states is merged into a single state, creating the
+                    minimal DFA. The result is verified with string tests.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 4: Worked Example & Live Test Plan -->
+          <section id="d-algo" class="card doc-section">
+            <header class="doc-section-head">
+              <span class="q-large">4</span>
+              <div>
+                <h2 class="doc-section-title">Worked Example & Live Tests</h2>
+                <p class="doc-section-meta">Interactive benchmark and live test results</p>
+              </div>
+            </header>
+
+            <div
+              style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+              <p style="margin: 0;">Textbook 6-state DFA minimized to 3 states (Language: <code>0*10*</code>):</p>
+              <button type="button" class="btn secondary compact-btn" id="docLoadSix">
+                Open Example in Simulator
+              </button>
+            </div>
+
+            <div class="two-column-doc">
+              <div class="card subcard">
+                <h4 class="subcard-title">Original DFA (6 states)</h4>
+                <div id="docInput" class="diagram-stage doc-preview-stage"></div>
+              </div>
+              <div class="card subcard">
+                <h4 class="subcard-title">Minimized DFA (3 states)</h4>
+                <div id="docMin" class="diagram-stage doc-preview-stage"></div>
+              </div>
+            </div>
+
+            <h3 class="doc-subheading" style="margin-top: 24px;">Live Verification Results</h3>
+            <p>The table below is computed live by the engine each time this page loads:</p>
+            <div class="table-scroll-wrapper">
+              <table class="grid-table wide-table">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;">#</th>
+                    <th>Test Case</th>
+                    <th>Expected</th>
+                    <th>Generated</th>
+                    <th style="width: 80px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="docTests"></tbody>
+              </table>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </section>
+
+    </div>
+    </div>
+    </section>
+
+  </main>
+
+  <!-- ======================= FULLSCREEN GRAPH DIALOG ======================= -->
+  <dialog id="graphDialog" class="modal-dialog" aria-labelledby="dlgTitle">
+    <div class="modal-dialog-inner">
+      <div class="modal-header">
+        <div>
+          <span id="dlgStep" class="modal-meta">Studio Viewport</span>
+          <h2 id="dlgTitle" class="modal-title">Automata State Diagram</h2>
+        </div>
+        <button id="dlgClose" class="btn secondary compact-btn" type="button" aria-label="Close dialog">Close
+          (Esc)</button>
+      </div>
+      <div id="graphBig" class="diagram-stage modal-stage"></div>
+    </div>
+  </dialog>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div>
+        <strong>AutomataFlow</strong> · Topic 3: DFA Minimization Simulator · CSET302 Theory of Computation
+      </div>
+      <div>Works offline in any browser</div>
+    </div>
+  </footer>
+
+  <!-- Core Architecture Scripts -->
+  <script src="js/algorithms.js"></script>
+  <script src="js/presets.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/testcases.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,27 @@
+{
+  "id": "T15",
+  "category": "Edge case",
+  "title": "Single-state DFA",
+  "machine": "1 state with self-loops",
+  "input": "—",
+  "expected": "1 state; no pairs to compare",
+  "dfa": {
+    "states": [
+      "s"
+    ],
+    "alphabet": [
+      "a",
+      "b"
+    ],
+    "start": "s",
+    "finals": [
+      "s"
+    ],
+    "delta": {
+      "s": {
+        "a": "s",
+        "b": "s"
+      }
+    }
+  }
+}

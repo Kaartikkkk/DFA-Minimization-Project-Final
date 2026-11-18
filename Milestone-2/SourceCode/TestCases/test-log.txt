@@ -1,0 +1,154 @@
+DFA Minimization Simulator: test log (2026-11-17)
+
+PASS T01 [String test] Accepted string
+     machine:  Worked 6-state example (L = 0*10*)
+     input:    0100
+     expected: Accept on both DFAs
+     actual:   Accept (original), Accept (minimized); path q0→q1→q3→q4→q4
+PASS T02 [String test] Rejected string
+     machine:  Worked 6-state example
+     input:    101
+     expected: Reject on both DFAs
+     actual:   Reject (original), Reject (minimized); path q0→q2→q4→q5
+PASS T03 [Invalid input] Unknown symbol in test string
+     machine:  Worked 6-state example, Σ = {0, 1}
+     input:    012
+     expected: Validation error: "2" is not in Σ
+     actual:   Error: Symbol "2" is not in Σ = {0, 1}.
+PASS T04 [String test] Empty string ε, start state not final
+     machine:  Worked 6-state example
+     input:    ε
+     expected: Reject (q0 ∉ F)
+     actual:   Reject (original), Reject (minimized); path q0
+PASS T05 [Edge case] Missing transitions (incomplete δ)
+     machine:  a*b with δ(Q, ·) undefined; R unreachable
+     input:    —
+     expected: Explicit dead state added; R removed; 3 states
+     actual:   3 states; removed {R}; dead state added
+PASS T06 [String test] Empty string ε, start state final
+     machine:  Every state final (Σ*)
+     input:    ε
+     expected: Accept
+     actual:   Accept (original), Accept (minimized); path A
+PASS T07 [Minimization] Textbook DFA with an unreachable state
+     machine:  8 states A–H (Hopcroft–Ullman)
+     input:    —
+     expected: 5 states; D removed; {A,E} and {B,H} merged
+     actual:   5 states; removed {D}; merged {A, E} {B, H}
+PASS T08 [Minimization] Worked example (hand solution)
+     machine:  6 states q0–q5
+     input:    —
+     expected: 3 states: {q0,q1}, {q2,q3,q4}, {q5}
+     actual:   3 states; merged {q0, q1} {q2, q3, q4}
+PASS T09 [Minimization] Even number of a's, counted mod 4
+     machine:  4 states p0–p3
+     input:    —
+     expected: 2 states; p0≡p2 and p1≡p3
+     actual:   2 states; merged {p0, p2} {p1, p3}
+PASS T10 [Minimization] Three-symbol alphabet
+     machine:  Strings over {a,b,c} ending in c, 3 states
+     input:    —
+     expected: 2 states; S≡S2
+     actual:   2 states; merged {S, S2}
+PASS T11 [Minimization] Larger DFA: number of 1s mod 3, counted mod 12
+     machine:  12 states m0–m11
+     input:    —
+     expected: 3 states (one per remainder)
+     actual:   3 states; merged {m0, m3, m6, m9} {m1, m4, m7, m10} {m2, m5, m8, m11}
+PASS T12 [Edge case] Already minimal DFA
+     machine:  Strings ending in "ab", 3 states
+     input:    —
+     expected: Unchanged: 3 states, nothing merged
+     actual:   3 states
+PASS T13 [Edge case] Every state final (Σ*)
+     machine:  3 states, all final
+     input:    —
+     expected: 1 state
+     actual:   1 state; merged {A, B, C}
+PASS T14 [Edge case] No final states (∅)
+     machine:  2 states, none final
+     input:    —
+     expected: 1 state
+     actual:   1 state; merged {A, B}
+PASS T15 [Edge case] Single-state DFA
+     machine:  1 state with self-loops
+     input:    —
+     expected: 1 state; no pairs to compare
+     actual:   1 state
+PASS T16 [Edge case] Several unreachable states forming a cycle
+     machine:  A, B reachable; C→D→E→C unreachable
+     input:    —
+     expected: 2 states; C, D, E removed
+     actual:   2 states; removed {C, D, E}
+PASS T17 [Edge case] Multi-character symbols
+     machine:  Σ = {go, stop}, 3 states
+     input:    go stop go
+     expected: 2 states; the string is accepted
+     actual:   2 states; merged {moving, moving2}; Accept
+PASS T18 [Edge case] Longest distinguishing string (many passes)
+     machine:  Length ≥ 5 counter, 6 states
+     input:    —
+     expected: Already minimal; last mark in pass 4; pass 5 empty
+     actual:   6 states; last mark in pass 4; 5 passes
+PASS T19 [Invalid input] Start state not in Q
+     machine:  Worked example with q₀ = "z"
+     input:    —
+     expected: Error: start state "z" is not in the state list
+     actual:   Error: Start state "z" is not in the state list.
+PASS T20 [Invalid input] Duplicate state name
+     machine:  Q = {q0, q1, q1, …}
+     input:    —
+     expected: Error: state names must be unique
+     actual:   Error: State names must be unique.
+PASS T21 [Invalid input] ε used as an input symbol
+     machine:  Σ = {0, 1, ε}
+     input:    —
+     expected: Error: a DFA cannot have ε as a symbol
+     actual:   Error: A DFA cannot have ε as an input symbol.
+PASS T22 [Invalid input] Transition to a state that does not exist
+     machine:  δ(q0, 0) = "q9"
+     input:    —
+     expected: Error: "q9" is not a valid state
+     actual:   Error: δ(q0, 0) = "q9" is not a valid state.
+PASS T23 [Invalid input] Empty state list
+     machine:  Q = ∅
+     input:    —
+     expected: Error: enter at least one state
+     actual:   Error: Enter at least one state.
+PASS T24 [Invalid input] Malformed JSON file on import
+     machine:  File text "{states: [A"
+     input:    Import JSON
+     expected: Error: the file is not valid JSON
+     actual:   Error: The file is not valid JSON.
+PASS T25 [Correctness] 300 random DFAs vs brute-force oracle
+     machine:  Seeded random, 2–7 states, 2–3 symbols
+     input:    —
+     expected: Both methods agree, same language, size = oracle for all 300
+     actual:   300 / 300 correct
+PASS T26 [Correctness] Pass number = shortest distinguishing string
+     machine:  Textbook DFA + 100 random DFAs
+     input:    —
+     expected: Every mark made in pass k has a shortest distinguishing string of length k
+     actual:   608 / 608 marks match
+PASS T27 [Correctness] Minimizing twice changes nothing
+     machine:  Textbook and worked example
+     input:    —
+     expected: Second run keeps the same number of states
+     actual:   5 → 5, 3 → 3
+PASS T28 [Feature] Export then import keeps the DFA
+     machine:  Textbook DFA
+     input:    Export JSON → Import JSON
+     expected: Identical machine and the same 5-state result
+     actual:   identical machine; 5 states; removed {D}; merged {A, E} {B, H}
+PASS T29 [Feature] Step-by-step records for every phase
+     machine:  Textbook DFA, method "both"
+     input:    —
+     expected: BFS, table-filling and partition steps recorded; one table-filling step per mark
+     actual:   7 BFS visits, 19 marks, 3 partition rounds recorded
+PASS T30 [Feature] Random DFA generator gives valid machines
+     machine:  200 machines from the Random DFA generator
+     input:    Random DFA
+     expected: Every machine is a valid, complete DFA and minimizes correctly
+     actual:   200 / 200 valid and correctly minimized
+
+30 / 30 tests passed.

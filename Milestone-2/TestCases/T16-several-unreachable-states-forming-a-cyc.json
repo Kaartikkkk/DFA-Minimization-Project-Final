@@ -1,0 +1,48 @@
+{
+  "id": "T16",
+  "category": "Edge case",
+  "title": "Several unreachable states forming a cycle",
+  "machine": "A, B reachable; C→D→E→C unreachable",
+  "input": "—",
+  "expected": "2 states; C, D, E removed",
+  "dfa": {
+    "states": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "alphabet": [
+      "0",
+      "1"
+    ],
+    "start": "A",
+    "finals": [
+      "B",
+      "D"
+    ],
+    "delta": {
+      "A": {
+        "0": "B",
+        "1": "A"
+      },
+      "B": {
+        "0": "A",
+        "1": "B"
+      },
+      "C": {
+        "0": "D",
+        "1": "E"
+      },
+      "D": {
+        "0": "E",
+        "1": "C"
+      },
+      "E": {
+        "0": "C",
+        "1": "D"
+      }
+    }
+  }
+}

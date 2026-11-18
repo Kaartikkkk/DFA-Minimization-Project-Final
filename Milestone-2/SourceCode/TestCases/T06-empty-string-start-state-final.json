@@ -1,0 +1,39 @@
+{
+  "id": "T06",
+  "category": "String test",
+  "title": "Empty string ε, start state final",
+  "machine": "Every state final (Σ*)",
+  "input": "ε",
+  "expected": "Accept",
+  "dfa": {
+    "states": [
+      "A",
+      "B",
+      "C"
+    ],
+    "alphabet": [
+      "0",
+      "1"
+    ],
+    "start": "A",
+    "finals": [
+      "A",
+      "B",
+      "C"
+    ],
+    "delta": {
+      "A": {
+        "0": "B",
+        "1": "C"
+      },
+      "B": {
+        "0": "C",
+        "1": "A"
+      },
+      "C": {
+        "0": "A",
+        "1": "B"
+      }
+    }
+  }
+}
