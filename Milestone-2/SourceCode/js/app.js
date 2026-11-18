@@ -200,21 +200,27 @@
     }
   });
 
-  // Header badges click to open options
+  // Header badges click to jump to editor state configuration
   if ($('startBadge')) {
-    $('startBadge').style.cursor = 'pointer';
-    $('startBadge').title = 'Click to configure start state';
     $('startBadge').addEventListener('click', function () {
-      var p = $('sidebarOptionsPanel');
-      if (p) { p.hidden = false; $('startSel').focus(); }
+      if (document.body.classList.contains('focus') || document.body.classList.contains('focus-mode')) {
+        toggleFocus();
+      }
+      if ($('startSel')) {
+        $('startSel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        $('startSel').focus();
+      }
     });
   }
   if ($('acceptingBadge')) {
-    $('acceptingBadge').style.cursor = 'pointer';
-    $('acceptingBadge').title = 'Click to configure accepting states';
     $('acceptingBadge').addEventListener('click', function () {
-      var p = $('sidebarOptionsPanel');
-      if (p) p.hidden = false;
+      if (document.body.classList.contains('focus') || document.body.classList.contains('focus-mode')) {
+        toggleFocus();
+      }
+      if ($('finalAddBtn')) {
+        $('finalAddBtn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        $('finalAddBtn').focus();
+      }
     });
   }
 
@@ -291,6 +297,8 @@
         return '<li>' + esc(e) + '</li>';
       }).join('') + '</ul>';
       $('player').hidden = true; $('tester').hidden = true; $('emptyState').hidden = false;
+      if ($('bottomCardsGrid')) $('bottomCardsGrid').hidden = true;
+      if ($('stepDetailsPanel')) $('stepDetailsPanel').hidden = true;
       return;
     }
     $('emptyState').hidden = true;
@@ -307,6 +315,8 @@
     }
     steps = buildSteps(res);
     $('player').hidden = false; $('tester').hidden = false;
+    if ($('bottomCardsGrid')) $('bottomCardsGrid').hidden = false;
+    if ($('stepDetailsPanel')) $('stepDetailsPanel').hidden = false;
     $('testOut').innerHTML = '';
     $('testLog').hidden = true;
     $('testLog').tBodies[0].innerHTML = '';
@@ -390,10 +400,34 @@
   /* ================= Presentation Focus Mode ================= */
   function toggleFocus() {
     var on = document.body.classList.toggle('focus');
-    $('focusBtn').setAttribute('aria-pressed', on);
-    $('focusBtn').querySelector('span').textContent = on ? 'Show Sidebar' : 'Hide Sidebar';
+    document.body.classList.toggle('focus-mode', on);
+    if ($('focusBtn')) {
+      $('focusBtn').setAttribute('aria-pressed', on);
+      $('focusBtn').title = on ? 'Show Sidebar (F)' : 'Hide Sidebar (F)';
+      var sp = $('focusBtn').querySelector('span:not(.sr-only)');
+      if (sp) sp.textContent = on ? 'Show Sidebar' : 'Hide Sidebar';
+    }
+    if ($('quickSidebarBtn')) {
+      var qsp = $('quickSidebarBtn').querySelector('span');
+      if (qsp) qsp.textContent = on ? 'Show Sidebar' : 'Sidebar';
+    }
+    if ($('actionSidebarBtn')) {
+      var asp = $('actionSidebarBtn').querySelector('span');
+      if (asp) asp.textContent = on ? 'Show Sidebar' : 'Toggle Sidebar';
+    }
+    // Re-draw current graph step to fill new container width smoothly
+    if (typeof show === 'function' && typeof cur === 'number' && typeof steps !== 'undefined' && steps && steps[cur]) {
+      setTimeout(function () { show(cur); }, 60);
+    }
   }
-  $('focusBtn').addEventListener('click', toggleFocus);
+  if ($('focusBtn')) $('focusBtn').addEventListener('click', toggleFocus);
+  if ($('quickSidebarBtn')) $('quickSidebarBtn').addEventListener('click', toggleFocus);
+  if ($('actionSidebarBtn')) $('actionSidebarBtn').addEventListener('click', toggleFocus);
+  if ($('quickExpandBtn')) $('quickExpandBtn').addEventListener('click', expandGraph);
+  if ($('actionExpandBtn')) $('actionExpandBtn').addEventListener('click', expandGraph);
+  if ($('quickPrevBtn')) $('quickPrevBtn').addEventListener('click', function () { if ($('prevBtn') && !$('prevBtn').disabled) $('prevBtn').click(); });
+  if ($('quickNextBtn')) $('quickNextBtn').addEventListener('click', function () { if ($('nextBtn') && !$('nextBtn').disabled) $('nextBtn').click(); });
+  if ($('quickPlayBtn')) $('quickPlayBtn').addEventListener('click', function () { if ($('playBtn')) $('playBtn').click(); });
 
   /* ================= Build Execution Steps ================= */
   function buildSteps(r) {
@@ -405,8 +439,10 @@
       '. Start state: <b>' + esc(full.start) + '</b>, and accepting states: ' + set(full.finals) + '.</p>';
     if (r.dead) html += '<p class="note">Added trap state “' + esc(r.dead) + '” for missing transitions.</p>';
     html += '<p>Goal: Find and merge equivalent states to produce the smallest DFA that accepts the exact same language.</p>';
-    S.push({ phase: 'Input', title: 'Step 1: Original DFA Input', html: html,
-             graph: { dfa: full, label: 'Original DFA' }, work: { kind: 'table', dfa: full, caption: 'Transition Table' } });
+    S.push({
+      phase: 'Input', title: 'Step 1: Original DFA Input', html: html,
+      graph: { dfa: full, label: 'Original DFA' }, work: { kind: 'table', dfa: full, caption: 'Transition Table' }
+    });
 
     // Phase 1: Unreachable states
     r.reach.steps.forEach(function (st) {
@@ -423,9 +459,12 @@
           html: '<p>Exploring transitions from state <b>' + esc(st.state) + '</b>. ' + (st.found.length
             ? 'Found reachable states: ' + st.found.map(function (f) { return b(f.state); }).join(', ') + '.'
             : 'All connected states have already been visited.') + '</p>',
-          graph: { dfa: full, label: 'Exploring State ' + st.state, active: [st.state], visited: st.visited,
-                   activeEdges: full.alphabet.map(function (a) { return { from: st.state, to: full.delta[st.state][a] }; }) },
-          work: { kind: 'reach', visited: st.visited, queue: st.queue } });
+          graph: {
+            dfa: full, label: 'Exploring State ' + st.state, active: [st.state], visited: st.visited,
+            activeEdges: full.alphabet.map(function (a) { return { from: st.state, to: full.delta[st.state][a] }; })
+          },
+          work: { kind: 'reach', visited: st.visited, queue: st.queue }
+        });
       } else {
         S.push({
           phase: 'Unreachable', title: st.unreachable.length ? 'Step 2: Removed Unreachable States' : 'Step 2: All States Are Reachable',
@@ -453,16 +492,20 @@
           S.push({
             phase: 'Table-filling', title: 'Step 3: Mark Pair (' + p + ', ' + q + ')',
             html: '<p>States (<b>' + p + '</b>, <b>' + q + '</b>) are different because on symbol “<b>' + esc(m.symbol) + '</b>”, they lead to (<b>' + esc(m.via[0]) + '</b>, <b>' + esc(m.via[1]) + '</b>), which are already different.</p>',
-            graph: { dfa: red, label: 'Distinguishing (' + p + ', ' + q + ')', active: [p, q],
-                     activeEdges: [{ from: p, to: red.delta[p][m.symbol] }, { from: q, to: red.delta[q][m.symbol] }] },
-            work: { kind: 'tf', markCount: st.markCount, highlight: m } });
+            graph: {
+              dfa: red, label: 'Distinguishing (' + p + ', ' + q + ')', active: [p, q],
+              activeEdges: [{ from: p, to: red.delta[p][m.symbol] }, { from: q, to: red.delta[q][m.symbol] }]
+            },
+            work: { kind: 'tf', markCount: st.markCount, highlight: m }
+          });
         } else if (st.type === 'tf-pass') {
           S.push({
             phase: 'Table-filling', title: 'Step 3: Pass ' + st.pass + ' Complete',
             html: st.newly
               ? '<p>Pass ' + st.pass + ' found <b>' + st.newly + '</b> newly distinguished pair(s). Continuing check.</p>'
               : '<p>Pass ' + st.pass + ' found no new pairs. The table is complete.</p>',
-            graph: { dfa: red, label: 'Table-Filling Pass ' + st.pass }, work: { kind: 'tf', markCount: st.markCount } });
+            graph: { dfa: red, label: 'Table-Filling Pass ' + st.pass }, work: { kind: 'tf', markCount: st.markCount }
+          });
         } else if (st.type === 'tf-result') {
           S.push({
             phase: 'Table-filling', title: 'Step 3: Matching States Found',
@@ -524,7 +567,7 @@
     S.push({
       phase: 'Merge', title: 'Step 4: Build Minimized DFA',
       html: '<p>Combine each group of equivalent states into a single state, and re-link all transitions to build the minimal DFA.</p>',
-      graph: { dfa: red, label: 'Minimized DFA', groups: r.classes },
+      graph: { dfa: red, label: 'State Merging', groups: r.classes },
       work: { kind: 'min' }
     });
 
@@ -543,7 +586,7 @@
         '<li class="' + (r.isMinimal ? 'good' : 'bad') + '">' + (r.isMinimal
           ? '✓ Minimal: Verified that no smaller DFA can accept this language.'
           : '✗ Minimality check failed.') + '</li></ul>',
-      graph: { dfa: full, label: 'Minimized Result', faded: r.reach.unreachable, groups: r.classes },
+      graph: { dfa: r.min, label: 'Minimized DFA' },
       work: { kind: 'summary' }
     });
 
@@ -579,6 +622,8 @@
     $('progress').style.width = ((cur + 1) / steps.length * 100) + '%';
     $('prevBtn').disabled = cur === 0;
     $('nextBtn').disabled = cur === steps.length - 1;
+    if ($('quickPrevBtn')) $('quickPrevBtn').disabled = cur === 0;
+    if ($('quickNextBtn')) $('quickNextBtn').disabled = cur === steps.length - 1;
 
     var gr = st.graph;
     $('graphLabel').textContent = gr.label;
@@ -639,7 +684,9 @@
 
   function play() {
     if (cur === steps.length - 1) show(0);
+    if ($('stepDetailsPanel')) $('stepDetailsPanel').open = true;
     $('playBtn').innerHTML = '<svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg><span>Pause</span>';
+    if ($('quickPlayBtn')) $('quickPlayBtn').innerHTML = '<kbd>Space</kbd> <span>Pause</span>';
     var hint = $('playHint');
     if (hint) { hint.classList.add('playing'); hint.querySelector('span:last-child').textContent = 'Minimizing in progress...'; }
     timer = setInterval(function () {
@@ -652,6 +699,7 @@
     if (timer) clearInterval(timer);
     timer = null;
     $('playBtn').innerHTML = '<svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span>Play</span>';
+    if ($('quickPlayBtn')) $('quickPlayBtn').innerHTML = '<kbd>Space</kbd> <span>Play</span>';
     var hint = $('playHint');
     if (hint) { hint.classList.remove('playing'); hint.querySelector('span:last-child').innerHTML = 'Click <strong>Play</strong> to animate'; }
   }
@@ -680,13 +728,14 @@
       box.innerHTML = '<div class="notification-banner ok" style="margin-bottom:12px;"><strong>Method Agreement:</strong> Both algorithms generated isomorphic partitions.</div>' +
         '<div class="kv"><span>Table-filling:</span><div>' + res.tf.classes.map(set).join(' ') + '</div></div>' +
         '<div class="kv"><span>Partition refinement:</span><div>' + res.pr.classes.map(set).join(' ') + '</div></div>';
-    } else if (w.kind === 'min' || w.kind === 'summary') {
-      title.textContent = 'Minimized DFA (' + res.min.states.length + ' States)';
-      box.innerHTML = '<div id="graphMin" class="diagram-stage small"></div>' +
-        (w.kind === 'min' ? classMapHTML() : '<div class="two-tables"><div><h4>Original DFA (' + res.full.states.length +
-          ' states)</h4>' + deltaTableHTML(res.full) + '</div><div><h4>Minimized DFA (' + res.min.states.length +
-          ' states)</h4>' + deltaTableHTML(res.min) + '</div></div>');
-      G.draw($('graphMin'), res.min, { groups: res.min.states.map(function (s) { return [s]; }) });
+    } else if (w.kind === 'min') {
+      title.textContent = 'Equivalence Classes';
+      box.innerHTML = classMapHTML();
+    } else if (w.kind === 'summary') {
+      title.textContent = 'Minimized Transition Table';
+      box.innerHTML = '<div class="notification-banner ok" style="margin-bottom:8px; font-size:12px; padding:6px 10px;">' +
+        '<strong>✓ Minimized:</strong> ' + res.full.states.length + ' → ' + res.min.states.length + ' states</div>' +
+        deltaTableHTML(res.min);
     }
   }
 
@@ -759,7 +808,7 @@
   }
 
   function classMapHTML() {
-    return '<div class="table-scroll-wrapper"><table class="grid-table"><thead><tr><th>Equivalence Class [q]</th><th>Synthesized Minimal State</th></tr></thead><tbody>' +
+    return '<div class="table-scroll-wrapper"><table class="grid-table"><thead><tr><th>Equivalence Class</th><th>Merged State</th></tr></thead><tbody>' +
       res.classes.map(function (c) { return '<tr><td>' + set(c) + '</td><td><strong>' + esc(A.className(c)) + '</strong></td></tr>'; }).join('') +
       '</tbody></table></div>';
   }
@@ -1108,7 +1157,7 @@
     $('expandBtn').addEventListener('click', function () {
       var player = $('player');
       if (document.fullscreenElement) {
-        document.exitFullscreen().catch(function () {});
+        document.exitFullscreen().catch(function () { });
       } else if (player && player.requestFullscreen) {
         player.requestFullscreen().catch(function () {
           expandGraph();

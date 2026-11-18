@@ -70,7 +70,8 @@
       </nav>
 
       <!-- Dark/Light Theme Toggle -->
-      <button id="themeToggleBtn" class="btn-theme-toggle" type="button" aria-label="Toggle dark/light mode" title="Toggle theme">
+      <button id="themeToggleBtn" class="btn-theme-toggle" type="button" aria-label="Toggle dark/light mode"
+        title="Toggle theme">
         <svg class="theme-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
@@ -87,8 +88,7 @@
         </svg>
       </button>
 
-      <!-- Hidden focus button so keyboard shortcut 'F' works without DOM error -->
-      <button id="focusBtn" hidden type="button"></button>
+
     </div>
   </header>
 
@@ -117,13 +117,16 @@
             </div>
             <div class="header-text-wrap">
               <h2 class="card-title">DFA Input</h2>
-              <p class="card-subtitle">Enter the DFA transitions to minimize it.</p>
+              <p class="card-subtitle">Enter the DFA details below.</p>
             </div>
-            <div class="sidebar-options-wrapper">
-              <button id="sidebarOptionsBtn" type="button" class="btn-subtle-gear" title="Presets, algorithm & settings" aria-label="Presets and Settings">
+            <div class="sidebar-options-wrapper" hidden>
+              <button id="sidebarOptionsBtn" type="button" class="btn-subtle-gear" title="Presets, algorithm & settings"
+                aria-label="Presets and Settings">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="gear-icon">
                   <circle cx="12" cy="12" r="3"></circle>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                  <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                  </path>
                 </svg>
               </button>
             </div>
@@ -153,14 +156,20 @@
           <div class="states-selection-row">
             <div class="field-block config-start-col">
               <label for="startSel" class="field-label-sm">
-                <svg class="label-mini-icon start-color" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg class="label-mini-icon start-color" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
                 <span>Start State</span>
               </label>
               <select id="startSel" class="form-select form-select-sm"></select>
             </div>
             <div class="field-block config-finals-col">
               <label class="field-label-sm">
-                <svg class="label-mini-icon final-color" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle></svg>
+                <svg class="label-mini-icon final-color" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.5">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <circle cx="12" cy="12" r="4"></circle>
+                </svg>
                 <span>Final State(s)</span>
               </label>
               <div id="finalChipsWrapper" class="final-chips-wrapper">
@@ -176,7 +185,11 @@
           <!-- Method Selection (Segmented Radio Group matching Reference Image) -->
           <div class="field-block method-selection-block">
             <label class="field-label-sm">
-              <svg class="label-mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              <svg class="label-mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
               <span>Method</span>
             </label>
             <div class="method-radio-group">
@@ -197,7 +210,7 @@
           <!-- Minimize DFA Button (Primary CTA Gradient with Forward Arrow) -->
           <button id="runBtn" class="btn primary cta-btn run-gradient-btn" type="button">
             <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
             <span>Minimize DFA</span>
             <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -215,7 +228,7 @@
               <span class="options-title">Presets & Options</span>
               <button id="closeOptionsBtn" type="button" class="btn-close-sm" aria-label="Close options">×</button>
             </div>
-            
+
             <div class="options-group">
               <label class="field-label-sm">Example DFA</label>
               <div class="quick-presets-row">
@@ -243,25 +256,40 @@
           <div class="main-page-header hero-header-row">
             <div class="hero-text-wrap">
               <h1 class="main-heading">DFA <span class="gradient-text">Minimization</span></h1>
-              <p class="main-subtitle">Minimize a Deterministic Finite Automaton (DFA) using Table-Filling or Partition Refinement.</p>
+              <p class="main-subtitle">Minimize a Deterministic Finite Automaton (DFA) using Table-Filling or Partition
+                Refinement.</p>
             </div>
             <div class="hero-art-wrap" aria-hidden="true">
-              <svg class="hero-automata-svg" viewBox="0 0 240 70" fill="none">
+              <svg class="hero-automata-svg" viewBox="0 0 220 70" fill="none">
                 <defs>
-                  <linearGradient id="artGrad" x1="0" y1="0" x2="240" y2="70" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#8b5cf6" stop-opacity="0.8"/>
-                    <stop offset="1" stop-color="#6366f1" stop-opacity="0.5"/>
-                  </linearGradient>
+                  <marker id="heroArrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6"
+                    orient="auto-start-reverse">
+                    <polygon points="1 1, 7 4, 1 7" fill="#8b5cf6" />
+                  </marker>
+                  <radialGradient id="heroArtGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.18" />
+                    <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0" />
+                  </radialGradient>
                 </defs>
-                <path d="M 46 35 C 70 12, 100 12, 124 35" stroke="url(#artGrad)" stroke-width="2" fill="none" stroke-dasharray="3 3"/>
-                <path d="M 144 35 C 168 12, 198 12, 214 35" stroke="url(#artGrad)" stroke-width="2" fill="none"/>
-                <path d="M 124 38 C 100 58, 70 58, 46 38" stroke="url(#artGrad)" stroke-width="2" fill="none"/>
-                <path d="M 214 38 C 198 58, 168 58, 144 38" stroke="url(#artGrad)" stroke-width="2" fill="none"/>
-                <circle cx="36" cy="35" r="16" fill="rgba(124, 58, 237, 0.12)" stroke="#7c3aed" stroke-width="2"/>
-                <circle cx="100" cy="20" r="15" fill="rgba(99, 102, 241, 0.12)" stroke="#6366f1" stroke-width="2"/>
-                <circle cx="160" cy="50" r="15" fill="rgba(139, 92, 246, 0.12)" stroke="#8b5cf6" stroke-width="2"/>
-                <circle cx="220" cy="35" r="16" fill="rgba(16, 185, 129, 0.12)" stroke="#10b981" stroke-width="2"/>
-                <circle cx="220" cy="35" r="12" fill="none" stroke="#10b981" stroke-width="1.5"/>
+                <ellipse cx="110" cy="35" rx="100" ry="32" fill="url(#heroArtGlow)" />
+                <!-- Curved connecting arrows matching reference image -->
+                <path d="M 40 36 C 54 22, 66 18, 76 20" stroke="#8b5cf6" stroke-width="1.6" fill="none"
+                  marker-end="url(#heroArrow)" />
+                <path d="M 98 16 C 126 4, 156 8, 178 20" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="3 3"
+                  fill="none" marker-end="url(#heroArrow)" />
+                <path d="M 94 30 C 104 42, 116 48, 126 51" stroke="#8b5cf6" stroke-width="1.6" fill="none"
+                  marker-end="url(#heroArrow)" />
+                <path d="M 148 48 C 160 38, 170 32, 179 28" stroke="#8b5cf6" stroke-width="1.6" fill="none"
+                  marker-end="url(#heroArrow)" />
+                <path d="M 38 48 C 62 70, 100 70, 124 59" stroke="#8b5cf6" stroke-width="1.5" fill="none"
+                  marker-end="url(#heroArrow)" />
+                <!-- 4 circular nodes in a curve -->
+                <circle cx="28" cy="42" r="13" fill="rgba(237, 233, 254, 0.45)" stroke="#8b5cf6" stroke-width="1.8" />
+                <circle cx="86" cy="22" r="13" fill="rgba(237, 233, 254, 0.45)" stroke="#8b5cf6" stroke-width="1.8" />
+                <circle cx="138" cy="54" r="13" fill="rgba(237, 233, 254, 0.45)" stroke="#8b5cf6" stroke-width="1.8" />
+                <circle cx="190" cy="25" r="14" fill="rgba(237, 233, 254, 0.6)" stroke="#8b5cf6" stroke-width="2" />
+                <circle cx="190" cy="25" r="10" fill="none" stroke="#8b5cf6" stroke-width="1.2"
+                  stroke-dasharray="2 2" />
               </svg>
             </div>
           </div>
@@ -297,7 +325,8 @@
               </svg>
             </div>
             <h2 class="empty-title">Ready to Minimize</h2>
-            <p class="empty-desc">Enter transitions in the sidebar or pick an example, then click <strong>Minimize DFA</strong>.</p>
+            <p class="empty-desc">Enter transitions in the sidebar or pick an example, then click <strong>Minimize
+                DFA</strong>.</p>
           </section>
 
           <!-- Active Visualization Card (Matches Reference Image) -->
@@ -319,15 +348,29 @@
               </div>
 
               <div class="vis-header-right">
-                <span id="startBadge" class="header-pill start-pill" hidden>
-                  <svg viewBox="0 0 24 24" fill="currentColor" class="pill-icon"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <button id="startBadge" class="header-pill start-pill" type="button"
+                  title="Start State: Click to jump to editor">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="pill-icon">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
                   <span>Start: <b id="startBadgeVal">A</b></span>
-                </span>
-                <span id="acceptingBadge" class="header-pill accept-pill" hidden>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pill-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+                <button id="acceptingBadge" class="header-pill accept-pill" type="button"
+                  title="Accepting State(s): Click to jump to editor">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pill-icon">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
                   <span>Accepting: <b id="acceptBadgeVal">C</b></span>
-                </span>
-                <button id="expandBtn" class="btn-subtle-expand" type="button" title="Toggle Fullscreen (E)" aria-label="Toggle Fullscreen">
+                </button>
+                <button id="focusBtn" class="btn-subtle-expand" type="button" title="Toggle Sidebar (F)"
+                  aria-label="Toggle Sidebar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                  </svg>
+                </button>
+                <button id="expandBtn" class="btn-subtle-expand" type="button" title="Toggle Fullscreen (E)"
+                  aria-label="Toggle Fullscreen">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15 3 21 3 21 9"></polyline>
                     <polyline points="9 21 3 21 3 15"></polyline>
@@ -360,8 +403,144 @@
                 <div id="work" class="matrix-content"></div>
               </div>
             </div>
+          </section>
 
-            <!-- Playback Controls & Progress Bar -->
+          <!-- Bottom Cards Row: Result Card + Quick Actions Card matching Reference Image -->
+          <div id="bottomCardsGrid" class="bottom-cards-grid">
+
+            <!-- Card 1: Result Card -->
+            <section id="resultCard" class="card result-card">
+              <div class="section-card-header">
+                <div class="header-icon-bubble ok">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <h3 class="section-card-title">Result</h3>
+              </div>
+
+              <div class="result-card-body">
+                <!-- Success notification box -->
+                <div class="result-success-box">
+                  <div class="success-bubble">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </div>
+                  <div class="success-text-wrap">
+                    <strong class="success-title">DFA minimized successfully!</strong>
+                    <p class="success-sub">Equivalent states have been merged.</p>
+                  </div>
+                </div>
+
+                <!-- KPI: States Reduced -->
+                <div class="result-kpi-box">
+                  <div class="kpi-icon-wrap purple">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                  </div>
+                  <div class="kpi-val-wrap">
+                    <strong id="kpiStatesReduced" class="kpi-main-val">8 → 5</strong>
+                    <span class="kpi-main-lbl">States Reduced</span>
+                  </div>
+                </div>
+
+                <!-- KPI: Final State(s) -->
+                <div class="result-kpi-box">
+                  <div class="kpi-icon-wrap violet">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <circle cx="12" cy="12" r="6"></circle>
+                      <circle cx="12" cy="12" r="2"></circle>
+                    </svg>
+                  </div>
+                  <div class="kpi-val-wrap">
+                    <strong id="kpiFinalStates" class="kpi-main-val">C</strong>
+                    <span class="kpi-main-lbl">Final State(s)</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Card 2: Quick Actions Card -->
+            <section class="card quick-actions-card">
+              <div class="section-card-header">
+                <div class="header-icon-bubble purple">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                  </svg>
+                </div>
+                <h3 class="section-card-title">Quick Actions</h3>
+              </div>
+
+              <div class="quick-actions-body">
+                <button id="downloadDfaBtn" class="action-card-btn" type="button"
+                  title="Download minimized DFA schema (JSON)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="action-btn-icon">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download DFA</span>
+                </button>
+
+                <button id="exportImageBtn" class="action-card-btn" type="button"
+                  title="Export graph visualization as SVG image">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="action-btn-icon">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  <span>Save as Image</span>
+                </button>
+
+                <button id="actionSidebarBtn" class="action-card-btn" type="button" title="Toggle Input Sidebar (F)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="action-btn-icon">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                  </svg>
+                  <span>Toggle Sidebar</span>
+                </button>
+
+                <button id="actionExpandBtn" class="action-card-btn" type="button" title="Expand Diagram View (E)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="action-btn-icon">
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <polyline points="9 21 3 21 3 15"></polyline>
+                    <line x1="21" y1="3" x2="14" y2="10"></line>
+                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                  </svg>
+                  <span>Fullscreen View</span>
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <!-- Step Simulation & Analysis Details (Collapsible drawer, preserves 100% of playback & explanation functionality) -->
+          <details id="stepDetailsPanel" class="card step-simulation-details" open>
+            <summary class="step-details-summary">
+              <div class="summary-left">
+                <div class="step-details-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                </div>
+                <div class="summary-text-wrap">
+                  <span class="summary-heading">Step-by-Step Simulation & Analysis</span>
+                  <span class="summary-sub">Detailed micro-steps, transition comparisons, and algorithmic
+                    narrative</span>
+                </div>
+              </div>
+              <div class="summary-right">
+                <span class="summary-badge">30 Steps</span>
+                <svg class="summary-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </summary>
+
             <div class="playback-container">
               <!-- Executive KPI Strip (Internal Sync) -->
               <div id="summary" class="kpi-strip" hidden></div>
@@ -431,106 +610,53 @@
                 <div id="stepText" class="step-explanation"></div>
               </div>
             </div>
-          </section>
+          </details>
 
-          <!-- Bottom Cards Row: Result Card + Quick Actions Card matching Reference Image -->
-          <div class="bottom-cards-grid">
-
-            <!-- Card 1: Result Card -->
-            <section id="resultCard" class="card result-card">
-              <div class="section-card-header">
-                <div class="header-icon-bubble ok">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </div>
-                <h3 class="section-card-title">Result</h3>
+          <!-- Interactive Shortcuts & Quick Controls Toolbar -->
+          <div class="card shortcuts-bar-card">
+            <div class="shortcuts-card-inner">
+              <div class="shortcuts-label-group">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="keyboard-icon">
+                  <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                  <line x1="6" y1="8" x2="6" y2="8"></line>
+                  <line x1="10" y1="8" x2="10" y2="8"></line>
+                  <line x1="14" y1="8" x2="14" y2="8"></line>
+                  <line x1="18" y1="8" x2="18" y2="8"></line>
+                  <line x1="6" y1="12" x2="6" y2="12"></line>
+                  <line x1="10" y1="12" x2="10" y2="12"></line>
+                  <line x1="14" y1="12" x2="14" y2="12"></line>
+                  <line x1="18" y1="12" x2="18" y2="12"></line>
+                  <line x1="7" y1="16" x2="17" y2="16"></line>
+                </svg>
+                <span class="shortcuts-title">Controls & Shortcuts:</span>
               </div>
-
-              <div class="result-card-body">
-                <!-- Success notification box -->
-                <div class="result-success-box">
-                  <div class="success-bubble">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </div>
-                  <div class="success-text-wrap">
-                    <strong class="success-title">DFA minimized successfully!</strong>
-                    <p class="success-sub">Equivalent states have been merged.</p>
-                  </div>
-                </div>
-
-                <!-- KPI: States Reduced -->
-                <div class="result-kpi-box">
-                  <div class="kpi-icon-wrap purple">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                      <polyline points="2 17 12 22 22 17"></polyline>
-                      <polyline points="2 12 12 17 22 12"></polyline>
-                    </svg>
-                  </div>
-                  <div class="kpi-val-wrap">
-                    <strong id="kpiStatesReduced" class="kpi-main-val">8 → 5</strong>
-                    <span class="kpi-main-lbl">States Reduced</span>
-                  </div>
-                </div>
-
-                <!-- KPI: Final State(s) -->
-                <div class="result-kpi-box">
-                  <div class="kpi-icon-wrap violet">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <circle cx="12" cy="12" r="6"></circle>
-                      <circle cx="12" cy="12" r="2"></circle>
-                    </svg>
-                  </div>
-                  <div class="kpi-val-wrap">
-                    <strong id="kpiFinalStates" class="kpi-main-val">C</strong>
-                    <span class="kpi-main-lbl">Final State(s)</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- Card 2: Quick Actions Card -->
-            <section class="card quick-actions-card">
-              <div class="section-card-header">
-                <div class="header-icon-bubble purple">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                  </svg>
-                </div>
-                <h3 class="section-card-title">Quick Actions</h3>
-              </div>
-
-              <div class="quick-actions-body">
-                <button id="downloadDfaBtn" class="action-card-btn" type="button" title="Download minimized DFA schema (JSON)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="action-btn-icon">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  <span>Download DFA</span>
+              <div class="shortcuts-buttons-group">
+                <button id="quickPrevBtn" class="btn-shortcut" type="button" title="Previous Step (Left Arrow)">
+                  <kbd>←</kbd> <span>Prev</span>
                 </button>
-
-                <button id="exportImageBtn" class="action-card-btn" type="button" title="Export graph visualization as SVG image">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="action-btn-icon">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                    <polyline points="21 15 16 10 5 21"></polyline>
-                  </svg>
-                  <span>Save as Image</span>
+                <button id="quickNextBtn" class="btn-shortcut" type="button" title="Next Step (Right Arrow)">
+                  <kbd>→</kbd> <span>Next</span>
+                </button>
+                <button id="quickPlayBtn" class="btn-shortcut" type="button"
+                  title="Play or Pause simulation (Spacebar)">
+                  <kbd>Space</kbd> <span>Play</span>
+                </button>
+                <button id="quickSidebarBtn" class="btn-shortcut" type="button" title="Toggle Sidebar (F)">
+                  <kbd>F</kbd> <span>Sidebar</span>
+                </button>
+                <button id="quickExpandBtn" class="btn-shortcut" type="button" title="Expand Diagram View (E)">
+                  <kbd>E</kbd> <span>Expand</span>
                 </button>
               </div>
-            </section>
-
+            </div>
           </div>
 
-          <!-- Hidden elements needed by app.js -->
-          <ol id="stepList" hidden></ol>
-
         </div>
+
+        <!-- Hidden elements needed by app.js -->
+        <ol id="stepList" hidden></ol>
+
+      </div>
       </div>
     </section>
 
@@ -548,7 +674,8 @@
             </div>
             <div>
               <h2 class="card-title">Test String Input</h2>
-              <p class="card-subtitle">Verify that both original and minimized machines produce identical acceptance results.</p>
+              <p class="card-subtitle">Verify that both original and minimized machines produce identical acceptance
+                results.</p>
             </div>
           </div>
 
@@ -580,7 +707,8 @@
         <div class="card tests-head-card">
           <div class="tests-head-info">
             <h2 class="card-title">Automated Verification Suite</h2>
-            <p class="card-subtitle">30 comprehensive automated tests validating string acceptance, minimization, edge cases, and input handling.</p>
+            <p class="card-subtitle">30 comprehensive automated tests validating string acceptance, minimization, edge
+              cases, and input handling.</p>
           </div>
           <div class="tests-actions-group">
             <button id="runTestsBtn" class="btn primary run-gradient-btn" type="button">Run All Tests</button>
@@ -691,25 +819,31 @@
             </div>
 
             <p class="doc-lead">
-              Many DFAs have duplicate or unnecessary states that do the exact same thing. Minimizing a DFA finds these matching states and combines them together, creating the smallest machine that accepts the exact same language.
+              Many DFAs have duplicate or unnecessary states that do the exact same thing. Minimizing a DFA finds these
+              matching states and combines them together, creating the smallest machine that accepts the exact same
+              language.
             </p>
 
             <div class="feature-card-grid">
               <div class="feature-card">
                 <h4 class="feature-card-title">Step-by-Step Visualizer</h4>
-                <p class="feature-card-desc">Watch every single step with live state diagrams and working tables so you always understand why a state was merged or removed.</p>
+                <p class="feature-card-desc">Watch every single step with live state diagrams and working tables so you
+                  always understand why a state was merged or removed.</p>
               </div>
               <div class="feature-card">
                 <h4 class="feature-card-title">Two Standard Algorithms</h4>
-                <p class="feature-card-desc">Supports both Table-Filling (Myhill-Nerode) and Partition Refinement (Moore), with cross-comparison to confirm they match.</p>
+                <p class="feature-card-desc">Supports both Table-Filling (Myhill-Nerode) and Partition Refinement
+                  (Moore), with cross-comparison to confirm they match.</p>
               </div>
               <div class="feature-card">
                 <h4 class="feature-card-title">Automated Verification</h4>
-                <p class="feature-card-desc">Automatically verifies that the original and minimized DFAs accept and reject the exact same strings on hundreds of sample words.</p>
+                <p class="feature-card-desc">Automatically verifies that the original and minimized DFAs accept and
+                  reject the exact same strings on hundreds of sample words.</p>
               </div>
               <div class="feature-card">
                 <h4 class="feature-card-title">Zero Installation</h4>
-                <p class="feature-card-desc">Built with pure HTML, CSS, and modern JavaScript. Opens instantly in any web browser without servers or setup.</p>
+                <p class="feature-card-desc">Built with pure HTML, CSS, and modern JavaScript. Opens instantly in any
+                  web browser without servers or setup.</p>
               </div>
             </div>
           </section>
@@ -784,22 +918,26 @@
               <div class="workflow-card">
                 <span class="step-badge">Phase 1</span>
                 <h4 class="wf-title">Remove Unreachable States</h4>
-                <p class="wf-desc">Starts at the initial state and visits all reachable states. Any state that cannot be reached is discarded.</p>
+                <p class="wf-desc">Starts at the initial state and visits all reachable states. Any state that cannot be
+                  reached is discarded.</p>
               </div>
               <div class="workflow-card">
                 <span class="step-badge">Phase 2</span>
                 <h4 class="wf-title">Find Matching States</h4>
-                <p class="wf-desc">Compares state pairs. States that produce identical outcomes on all symbols are marked as equivalent.</p>
+                <p class="wf-desc">Compares state pairs. States that produce identical outcomes on all symbols are
+                  marked as equivalent.</p>
               </div>
               <div class="workflow-card">
                 <span class="step-badge">Phase 3</span>
                 <h4 class="wf-title">Merge State Groups</h4>
-                <p class="wf-desc">Combines equivalent states into single composite states, rewiring all transitions cleanly.</p>
+                <p class="wf-desc">Combines equivalent states into single composite states, rewiring all transitions
+                  cleanly.</p>
               </div>
               <div class="workflow-card">
                 <span class="step-badge">Phase 4</span>
                 <h4 class="wf-title">Verify Equivalence</h4>
-                <p class="wf-desc">Tests strings through both machines to mathematically verify that the minimized DFA accepts the exact same language.</p>
+                <p class="wf-desc">Tests strings through both machines to mathematically verify that the minimized DFA
+                  accepts the exact same language.</p>
               </div>
             </div>
           </section>
@@ -854,6 +992,14 @@
 
   </main>
 
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div><strong>AutomataFlow</strong> · Topic 3: DFA Minimization Simulator · CSET302 Theory of Computation</div>
+      <div>Works offline in any browser</div>
+    </div>
+  </footer>
+
   <!-- Fullscreen / Expand Dialog for Diagram -->
   <dialog id="graphDialog" class="graph-modal">
     <div class="modal-card">
@@ -869,414 +1015,6 @@
   </dialog>
 
   <!-- Application Scripts -->
-  <script src="js/algorithms.js"></script>
-  <script src="js/presets.js"></script>
-  <script src="js/graph.js"></script>
-  <script src="js/testcases.js"></script>
-  <script src="js/app.js"></script>
-</body>
-
-</html>
-                <span class="kbd-hint">Shortcuts:</span>
-                <span><kbd>←</kbd> <kbd>→</kbd> Step</span>
-                <span><kbd>Space</kbd> Play/Pause</span>
-                <span><kbd>F</kbd> Sidebar</span>
-                <span><kbd>E</kbd> Expand</span>
-              </div>
-            </section>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- ======================= SECTION 2: TEST CASES (Milestone 2) ======================= -->
-    <section id="tests" class="tab-panel" hidden>
-      <div class="tests-layout">
-
-        <div class="card tests-head-card">
-          <div class="tests-head-info">
-            <h2 class="card-title">Automated Test Suite</h2>
-            <p class="card-subtitle">30 automated tests verifying string acceptance, minimization, edge cases, and input
-              validation.</p>
-          </div>
-          <div class="tests-actions-group">
-            <button id="runTestsBtn" class="btn primary" type="button">Run All Tests</button>
-            <button id="csvBtn" class="btn secondary" type="button" disabled>Download CSV</button>
-          </div>
-        </div>
-
-        <!-- Summary KPI cards for test suite -->
-        <div id="testSummary" class="kpi-strip"></div>
-
-        <!-- Filter Pills & Search -->
-        <div class="test-controls-bar">
-          <div id="testFilters" class="filter-pills-group" role="group" aria-label="Filter test cases by category">
-          </div>
-          <div class="search-box-wrap">
-            <input id="testSearchInput" type="text" class="form-input search-input" placeholder="Search tests..."
-              aria-label="Search test cases">
-          </div>
-        </div>
-
-        <!-- Test Cases Data Grid -->
-        <div class="card table-card">
-          <div class="table-scroll-wrapper">
-            <table class="grid-table tests-table">
-              <thead>
-                <tr>
-                  <th style="width: 60px;">ID</th>
-                  <th>Test Case</th>
-                  <th>Input</th>
-                  <th>Expected</th>
-                  <th>Actual</th>
-                  <th style="width: 90px;">Status</th>
-                  <th style="width: 70px;"></th>
-                </tr>
-              </thead>
-              <tbody id="testRows"></tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ======================= SECTION 3: DOCUMENTATION ======================= -->
-    <section id="design" class="tab-panel" hidden>
-      <div class="doc-layout">
-
-        <!-- Sticky Table of Contents Sidebar -->
-        <nav class="toc-sidebar" aria-label="Documentation sections">
-          <div class="toc-card card">
-            <h3 class="toc-title">Documentation</h3>
-            <ol class="toc-list">
-              <li>
-                <a href="#d-problem" class="toc-link">
-                  <span class="q-node">1</span>
-                  <div class="toc-link-text">
-                    <span class="toc-link-title">Overview</span>
-                    <span class="toc-link-meta">What & Why</span>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a href="#d-tools" class="toc-link">
-                  <span class="q-node">2</span>
-                  <div class="toc-link-text">
-                    <span class="toc-link-title">Tools & Features</span>
-                    <span class="toc-link-meta">Comparison</span>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a href="#d-design" class="toc-link">
-                  <span class="q-node">3</span>
-                  <div class="toc-link-text">
-                    <span class="toc-link-title">How It Works</span>
-                    <span class="toc-link-meta">4-step process</span>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a href="#d-algo" class="toc-link">
-                  <span class="q-node">4</span>
-                  <div class="toc-link-text">
-                    <span class="toc-link-title">Worked Example</span>
-                    <span class="toc-link-meta">Interactive Demo</span>
-                  </div>
-                </a>
-              </li>
-            </ol>
-            <button id="printBtn" class="btn primary full-width" type="button">Save as PDF</button>
-            <p class="toc-print-hint">Prints this documentation page.</p>
-          </div>
-        </nav>
-
-        <!-- Document Content Stream -->
-        <div class="doc-body">
-
-          <!-- Cover Card -->
-          <div class="card doc-cover-card">
-            <span class="badge-chip secondary">Project Guide</span>
-            <h2 class="cover-main-title">DFA Minimization Simulator: Project Documentation</h2>
-            <p class="doc-lead-text">A visual, step-by-step educational tool that simplifies Deterministic Finite
-              Automata (DFA) into their smallest equivalent forms.</p>
-
-            <!-- Authors Table -->
-            <table class="grid-table team-table">
-              <thead>
-                <tr>
-                  <th>Member</th>
-                  <th>Enrollment No.</th>
-                  <th>Role</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Snehil</strong></td>
-                  <td><code class="mono-code">S24CSEU0551</code></td>
-                  <td>Input Validation & Reachable States</td>
-                </tr>
-                <tr>
-                  <td><strong>Tanya Sinha</strong></td>
-                  <td><code class="mono-code">S24CSEU0583</code></td>
-                  <td>Table-Filling Algorithm</td>
-                </tr>
-                <tr>
-                  <td><strong>Suhani</strong></td>
-                  <td><code class="mono-code">S24CSEU0567</code></td>
-                  <td>Partition Refinement & State Merging</td>
-                </tr>
-                <tr>
-                  <td><strong>Kartik Lamba</strong></td>
-                  <td><code class="mono-code">S24CSEU0642</code></td>
-                  <td>UI Design, Visualizer & Testing</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Section 1: Overview -->
-          <section id="d-problem" class="card doc-section">
-            <header class="doc-section-head">
-              <span class="q-large">1</span>
-              <div>
-                <h2 class="doc-section-title">Overview</h2>
-                <p class="doc-section-meta">Why DFA minimization matters</p>
-              </div>
-            </header>
-
-            <p class="doc-prose">
-              Many DFAs have duplicate or unnecessary states that do the exact same thing. Minimizing a DFA finds these
-              matching states and combines them together, creating the smallest machine that accepts the exact same
-              language.
-            </p>
-
-            <div class="feature-card-grid">
-              <div class="feature-item-card">
-                <h4 class="feature-card-title">Step-by-Step Visualizer</h4>
-                <p class="feature-card-desc">Watch every single step with live state diagrams and working tables so you
-                  always understand why a state was merged or removed.</p>
-              </div>
-              <div class="feature-item-card">
-                <h4 class="feature-card-title">Two Standard Algorithms</h4>
-                <p class="feature-card-desc">Supports both Table-Filling (Myhill-Nerode) and Partition Refinement
-                  (Moore), with cross-comparison to confirm they match.</p>
-              </div>
-              <div class="feature-item-card">
-                <h4 class="feature-card-title">Automated Verification</h4>
-                <p class="feature-card-desc">Automatically verifies that the original and minimized DFAs accept and
-                  reject the exact same strings on hundreds of sample words.</p>
-              </div>
-              <div class="feature-item-card">
-                <h4 class="feature-card-title">Zero Installation</h4>
-                <p class="feature-card-desc">Built with pure HTML, CSS, and modern JavaScript. Opens instantly in any
-                  web browser without servers or setup.</p>
-              </div>
-            </div>
-          </section>
-
-          <!-- Section 2: Tools & Feasibility -->
-          <section id="d-tools" class="card doc-section">
-            <header class="doc-section-head">
-              <span class="q-large">2</span>
-              <div>
-                <h2 class="doc-section-title">Comparison & Performance</h2>
-                <p class="doc-section-meta">How AutomataFlow compares to existing tools</p>
-              </div>
-            </header>
-
-            <div class="table-scroll-wrapper">
-              <table class="grid-table wide-table">
-                <thead>
-                  <tr>
-                    <th>Tool</th>
-                    <th>Platform</th>
-                    <th>Strengths</th>
-                    <th>Limitations</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><strong>JFLAP</strong></td>
-                    <td>Desktop (Java)</td>
-                    <td>Popular academic tool for theory courses</td>
-                    <td>Requires Java; shows trees without pair tables or written reasons</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Automata Tutor</strong></td>
-                    <td>Web</td>
-                    <td>Auto-graded exercises for students</td>
-                    <td>Checks answers only; no interactive step-by-step solver</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Online FSM Tools</strong></td>
-                    <td>Web</td>
-                    <td>Quick diagrams and final results</td>
-                    <td>Only shows final DFA; skips intermediate tables and proofs</td>
-                  </tr>
-                  <tr class="highlight-row">
-                    <td><strong>AutomataFlow (Ours)</strong></td>
-                    <td>Any browser, offline</td>
-                    <td>Both algorithms, full step player, live verification</td>
-                    <td>Optimized for classroom DFAs (up to 30 states)</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="stats-card-grid-3" style="margin-top: 18px;">
-              <div class="stat-callout">
-                <span class="stat-badge">Platform</span>
-                <div class="stat-big-number">0</div>
-                <span class="stat-caption">Dependencies</span>
-                <p>Runs offline in any modern browser without extra packages or installations.</p>
-              </div>
-              <div class="stat-callout primary">
-                <span class="stat-badge">Speed</span>
-                <div class="stat-big-number">&lt; 2 ms</div>
-                <span class="stat-caption">Execution Time</span>
-                <p>Fast polynomial-time algorithms compute results and diagrams instantly.</p>
-              </div>
-              <div class="stat-callout">
-                <span class="stat-badge">Quality</span>
-                <div class="stat-big-number">30 / 30</div>
-                <span class="stat-caption">Tests Passing</span>
-                <p>Comprehensive automated test suite covering edge cases and input validation.</p>
-              </div>
-            </div>
-          </section>
-
-          <!-- Section 3: How It Works -->
-          <section id="d-design" class="card doc-section">
-            <header class="doc-section-head">
-              <span class="q-large">3</span>
-              <div>
-                <h2 class="doc-section-title">How It Works</h2>
-                <p class="doc-section-meta">The 4-step minimization pipeline</p>
-              </div>
-            </header>
-
-            <div class="workflow-cards-grid">
-              <div class="workflow-card">
-                <div class="workflow-number">1</div>
-                <div class="workflow-body">
-                  <h4 class="workflow-title">Input & Validation</h4>
-                  <p class="workflow-text">The user enters states, alphabet, start state, and accepting states. Any
-                    missing transitions automatically connect to a trap/dead state.</p>
-                </div>
-              </div>
-              <div class="workflow-card">
-                <div class="workflow-number">2</div>
-                <div class="workflow-body">
-                  <h4 class="workflow-title">Remove Unreachable States</h4>
-                  <p class="workflow-text">Breadth-First Search (BFS) explores all states starting from the initial
-                    state. Any state that cannot be reached is removed.</p>
-                </div>
-              </div>
-              <div class="workflow-card">
-                <div class="workflow-number">3</div>
-                <div class="workflow-body">
-                  <h4 class="workflow-title">Find Equivalent States</h4>
-                  <p class="workflow-text">The algorithm checks which states behave identically on every input. States
-                    that lead to the same outcomes are grouped together.</p>
-                </div>
-              </div>
-              <div class="workflow-card">
-                <div class="workflow-number">4</div>
-                <div class="workflow-body">
-                  <h4 class="workflow-title">Build & Verify Minimized DFA</h4>
-                  <p class="workflow-text">Each group of equivalent states is merged into a single state, creating the
-                    minimal DFA. The result is verified with string tests.</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Section 4: Worked Example & Live Test Plan -->
-          <section id="d-algo" class="card doc-section">
-            <header class="doc-section-head">
-              <span class="q-large">4</span>
-              <div>
-                <h2 class="doc-section-title">Worked Example & Live Tests</h2>
-                <p class="doc-section-meta">Interactive benchmark and live test results</p>
-              </div>
-            </header>
-
-            <div
-              style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
-              <p style="margin: 0;">Textbook 6-state DFA minimized to 3 states (Language: <code>0*10*</code>):</p>
-              <button type="button" class="btn secondary compact-btn" id="docLoadSix">
-                Open Example in Simulator
-              </button>
-            </div>
-
-            <div class="two-column-doc">
-              <div class="card subcard">
-                <h4 class="subcard-title">Original DFA (6 states)</h4>
-                <div id="docInput" class="diagram-stage doc-preview-stage"></div>
-              </div>
-              <div class="card subcard">
-                <h4 class="subcard-title">Minimized DFA (3 states)</h4>
-                <div id="docMin" class="diagram-stage doc-preview-stage"></div>
-              </div>
-            </div>
-
-            <h3 class="doc-subheading" style="margin-top: 24px;">Live Verification Results</h3>
-            <p>The table below is computed live by the engine each time this page loads:</p>
-            <div class="table-scroll-wrapper">
-              <table class="grid-table wide-table">
-                <thead>
-                  <tr>
-                    <th style="width: 40px;">#</th>
-                    <th>Test Case</th>
-                    <th>Expected</th>
-                    <th>Generated</th>
-                    <th style="width: 80px;">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="docTests"></tbody>
-              </table>
-            </div>
-          </section>
-
-        </div>
-      </div>
-    </section>
-
-    </div>
-    </div>
-    </section>
-
-  </main>
-
-  <!-- ======================= FULLSCREEN GRAPH DIALOG ======================= -->
-  <dialog id="graphDialog" class="modal-dialog" aria-labelledby="dlgTitle">
-    <div class="modal-dialog-inner">
-      <div class="modal-header">
-        <div>
-          <span id="dlgStep" class="modal-meta">Studio Viewport</span>
-          <h2 id="dlgTitle" class="modal-title">Automata State Diagram</h2>
-        </div>
-        <button id="dlgClose" class="btn secondary compact-btn" type="button" aria-label="Close dialog">Close
-          (Esc)</button>
-      </div>
-      <div id="graphBig" class="diagram-stage modal-stage"></div>
-    </div>
-  </dialog>
-
-  <!-- App Footer -->
-  <footer class="app-footer">
-    <div class="footer-inner">
-      <div>
-        <strong>AutomataFlow</strong> · Topic 3: DFA Minimization Simulator · CSET302 Theory of Computation
-      </div>
-      <div>Works offline in any browser</div>
-    </div>
-  </footer>
-
-  <!-- Core Architecture Scripts -->
   <script src="js/algorithms.js"></script>
   <script src="js/presets.js"></script>
   <script src="js/graph.js"></script>
