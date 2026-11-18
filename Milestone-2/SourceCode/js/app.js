@@ -80,10 +80,29 @@
       return '<option' + (s === editor.start ? ' selected' : '') + '>' + esc(s) + '</option>';
     }).join('');
 
-    $('finals').innerHTML = st.length ? st.map(function (s) {
-      return '<label class="chip-check"><input type="checkbox" value="' + esc(s) + '"' +
-        (editor.finals.has(s) ? ' checked' : '') + '> ' + esc(s) + '</label>';
-    }).join('') : '<span class="text-muted" style="font-size:12px;">Add states first</span>';
+    // Update compact final chips list matching reference image
+    if ($('finalChipsList')) {
+      var finArr = [];
+      editor.finals.forEach(function (f) { finArr.push(f); });
+      $('finalChipsList').innerHTML = finArr.length ? finArr.map(function (f) {
+        return '<span class="final-chip-pill"><button type="button" class="btn-remove-chip" data-remove="' + esc(f) + '" title="Remove ' + esc(f) + '">×</button> <span>' + esc(f) + '</span></span>';
+      }).join('') : '<span class="chip-placeholder">None</span>';
+    }
+
+    if ($('finalSelectAdd')) {
+      var available = st.filter(function (s) { return !editor.finals.has(s); });
+      $('finalSelectAdd').innerHTML = '<option value="">+ Add</option>' + available.map(function (s) {
+        return '<option value="' + esc(s) + '">' + esc(s) + '</option>';
+      }).join('');
+    }
+
+    // Keep hidden #finals checkboxes updated for backward compatibility
+    if ($('finals')) {
+      $('finals').innerHTML = st.length ? st.map(function (s) {
+        return '<label class="chip-check"><input type="checkbox" value="' + esc(s) + '"' +
+          (editor.finals.has(s) ? ' checked' : '') + '> ' + esc(s) + '</label>';
+      }).join('') : '';
+    }
 
     var head = '<tr><th>State</th>' + editor.alphabet.map(function (a) { return '<th>' + esc(a) + '</th>'; }).join('') + '</tr>';
     var rows = st.map(function (s) {
@@ -107,6 +126,34 @@
   $('finals').addEventListener('change', function (e) {
     if (e.target.checked) editor.finals.add(e.target.value); else editor.finals.delete(e.target.value);
     renderEditor();
+  });
+
+  if ($('finalChipsList')) {
+    $('finalChipsList').addEventListener('click', function (e) {
+      var rm = e.target.closest('[data-remove]');
+      if (rm) {
+        var s = rm.getAttribute('data-remove');
+        editor.finals.delete(s);
+        renderEditor();
+        run();
+      }
+    });
+  }
+
+  if ($('finalSelectAdd')) {
+    $('finalSelectAdd').addEventListener('change', function (e) {
+      var val = e.target.value;
+      if (val) {
+        editor.finals.add(val);
+        e.target.value = '';
+        renderEditor();
+        run();
+      }
+    });
+  }
+
+  document.querySelectorAll('input[name=method]').forEach(function (radio) {
+    radio.addEventListener('change', function () { run(); });
   });
   $('deltaTable').addEventListener('change', function (e) {
     var s = e.target.dataset.s, a = e.target.dataset.a;
@@ -238,6 +285,7 @@
     res = A.minimize(machine || currentDFA(), method);
     var msg = $('inputMsg');
     if (!res.ok) {
+      msg.style.display = 'block';
       msg.className = 'notification-banner error';
       msg.innerHTML = '<strong>Please fix the following:</strong><ul>' + res.validation.errors.map(function (e) {
         return '<li>' + esc(e) + '</li>';
@@ -248,8 +296,15 @@
     $('emptyState').hidden = true;
     var notes = res.validation.warnings.slice();
     if (res.dead) notes.push(res.validation.missing.length + ' missing transition(s) connected to trap state: ' + res.dead);
-    msg.className = notes.length ? 'notification-banner warn' : 'notification-banner ok';
-    msg.innerHTML = notes.length ? notes.map(esc).join('<br>') : 'DFA is complete and valid.';
+    if (notes.length) {
+      msg.style.display = 'block';
+      msg.className = 'notification-banner warn';
+      msg.innerHTML = notes.map(esc).join('<br>');
+    } else {
+      msg.style.display = 'none';
+      msg.className = 'notification-banner';
+      msg.innerHTML = '';
+    }
     steps = buildSteps(res);
     $('player').hidden = false; $('tester').hidden = false;
     $('testOut').innerHTML = '';
@@ -270,6 +325,14 @@
     var merged = res.classes.filter(function (c) { return c.length > 1; });
     var unreachCount = res.reach.unreachable.length;
     var isValid = res.equivalence.equal && res.isMinimal;
+
+    if ($('kpiStatesReduced')) {
+      $('kpiStatesReduced').textContent = before + ' → ' + after;
+    }
+    if ($('kpiFinalStates')) {
+      var finList = res.min.finals;
+      $('kpiFinalStates').textContent = finList.length ? finList.join(', ') : 'None';
+    }
 
     $('summary').innerHTML =
       '<div class="kpi-item hero">' +
@@ -489,6 +552,19 @@
 
   function sub(n) { return String(n).replace(/\d/g, function (d) { return '₀₁₂₃₄₅₆₇₈₉'[d]; }); }
 
+  function updateWorkflowStepper(phase) {
+    var stepIndex = 1;
+    if (phase === 'Input' || phase === 'Unreachable') stepIndex = 1;
+    else if (phase === 'Table-filling' || phase === 'Partition' || phase === 'Compare') stepIndex = 2;
+    else if (phase === 'Merge') stepIndex = 3;
+    else if (phase === 'Validate') stepIndex = 4;
+
+    ['wfStep1', 'wfStep2', 'wfStep3', 'wfStep4'].forEach(function (id, idx) {
+      var btn = $(id);
+      if (btn) btn.classList.toggle('active', (idx + 1) === stepIndex);
+    });
+  }
+
   /* ================= Step Player Controls ================= */
   function show(i) {
     cur = Math.max(0, Math.min(i, steps.length - 1));
@@ -499,6 +575,7 @@
     var txt = $('stepText');
     txt.classList.remove('swap'); void txt.offsetWidth; txt.classList.add('swap');
     updateTimeline(st.phase);
+    updateWorkflowStepper(st.phase);
     $('progress').style.width = ((cur + 1) / steps.length * 100) + '%';
     $('prevBtn').disabled = cur === 0;
     $('nextBtn').disabled = cur === steps.length - 1;
@@ -973,6 +1050,101 @@
   });
 
   /* ================= Initialization ================= */
+  // 4-Step Workflow jump handlers
+  ['wfStep1', 'wfStep2', 'wfStep3', 'wfStep4'].forEach(function (id, idx) {
+    var btn = $(id);
+    if (btn) {
+      btn.addEventListener('click', function () {
+        var phases = ['Input', 'Table-filling', 'Merge', 'Validate'];
+        var targetPhase = phases[idx];
+        if (targetPhase === 'Table-filling' && res && res.pr && !res.tf) {
+          targetPhase = 'Partition';
+        }
+        var targetIdx = -1;
+        steps.forEach(function (s, k) {
+          if (targetIdx === -1 && s.phase === targetPhase) targetIdx = k;
+        });
+        if (targetIdx !== -1) { stop(); show(targetIdx); }
+      });
+    }
+  });
+
+  // Quick Action: Download DFA
+  if ($('downloadDfaBtn')) {
+    $('downloadDfaBtn').addEventListener('click', function () {
+      var dfaObj = (res && res.min) ? res.min : currentDFA();
+      var jsonStr = JSON.stringify(dfaObj, null, 2);
+      var blob = new Blob([jsonStr], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'automataflow-minimized-dfa.json';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    });
+  }
+
+  // Quick Action: Save as Image (SVG)
+  if ($('exportImageBtn')) {
+    $('exportImageBtn').addEventListener('click', function () {
+      var svg = $('graphMain').querySelector('svg');
+      if (!svg) return;
+      var serializer = new XMLSerializer();
+      var source = serializer.serializeToString(svg);
+      if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      var blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'dfa-visualization.svg';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
+  }
+
+  // Fullscreen / expand button
+  if ($('expandBtn')) {
+    $('expandBtn').addEventListener('click', function () {
+      var player = $('player');
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(function () {});
+      } else if (player && player.requestFullscreen) {
+        player.requestFullscreen().catch(function () {
+          expandGraph();
+        });
+      } else {
+        expandGraph();
+      }
+    });
+  }
+
+  // Dark/Light Theme Toggle
+  var themeToggleBtn = $('themeToggleBtn');
+  if (themeToggleBtn) {
+    var storedTheme = localStorage.getItem('automataflow-theme');
+    if (storedTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      var moon = themeToggleBtn.querySelector('.moon-icon');
+      var sun = themeToggleBtn.querySelector('.sun-icon');
+      if (moon && sun) { moon.hidden = true; sun.hidden = false; }
+    }
+    themeToggleBtn.addEventListener('click', function () {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      var moon = themeToggleBtn.querySelector('.moon-icon');
+      var sun = themeToggleBtn.querySelector('.sun-icon');
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('automataflow-theme', 'light');
+        if (moon && sun) { moon.hidden = false; sun.hidden = true; }
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('automataflow-theme', 'dark');
+        if (moon && sun) { moon.hidden = true; sun.hidden = false; }
+      }
+    });
+  }
+
   $('preset').value = PRESETS[0].id;
   $('preset').dispatchEvent(new Event('change'));
 

@@ -69,6 +69,24 @@
         </button>
       </nav>
 
+      <!-- Dark/Light Theme Toggle -->
+      <button id="themeToggleBtn" class="btn-theme-toggle" type="button" aria-label="Toggle dark/light mode" title="Toggle theme">
+        <svg class="theme-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg class="theme-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" hidden>
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      </button>
+
       <!-- Hidden focus button so keyboard shortcut 'F' works without DOM error -->
       <button id="focusBtn" hidden type="button"></button>
     </div>
@@ -118,25 +136,74 @@
               <input id="states" type="text" class="form-input" placeholder="A, B, C, D, E, F, G, H">
             </div>
             <div class="field-block">
-              <label for="alphabet" class="field-label">Alphabet</label>
+              <label for="alphabet" class="field-label">Alphabet (Σ)</label>
               <input id="alphabet" type="text" class="form-input" placeholder="0, 1">
             </div>
           </div>
 
           <!-- Transitions Table -->
           <div class="field-block transitions-block">
-            <label class="field-label">Transitions</label>
+            <label class="field-label">Transition Function (δ)</label>
             <div class="table-scroll-wrapper">
               <table id="deltaTable" class="matrix-table delta-editor-table"></table>
             </div>
           </div>
 
-          <!-- Minimize DFA Button (Primary CTA Gradient) -->
+          <!-- Start State & Final State Selectors (Compact row matching reference image) -->
+          <div class="states-selection-row">
+            <div class="field-block config-start-col">
+              <label for="startSel" class="field-label-sm">
+                <svg class="label-mini-icon start-color" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <span>Start State</span>
+              </label>
+              <select id="startSel" class="form-select form-select-sm"></select>
+            </div>
+            <div class="field-block config-finals-col">
+              <label class="field-label-sm">
+                <svg class="label-mini-icon final-color" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle></svg>
+                <span>Final State(s)</span>
+              </label>
+              <div id="finalChipsWrapper" class="final-chips-wrapper">
+                <div id="finalChipsList" class="final-chips-list"></div>
+                <select id="finalSelectAdd" class="chip-add-select" title="Add final state">
+                  <option value="">+ Add</option>
+                </select>
+              </div>
+              <div id="finals" hidden></div>
+            </div>
+          </div>
+
+          <!-- Method Selection (Segmented Radio Group matching Reference Image) -->
+          <div class="field-block method-selection-block">
+            <label class="field-label-sm">
+              <svg class="label-mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              <span>Method</span>
+            </label>
+            <div class="method-radio-group">
+              <label class="method-radio-label">
+                <input type="radio" name="method" value="tf" checked>
+                <span class="custom-radio-dot"></span>
+                <span>Table-Filling</span>
+              </label>
+              <label class="method-radio-label">
+                <input type="radio" name="method" value="pr">
+                <span class="custom-radio-dot"></span>
+                <span>Partition Refinement</span>
+              </label>
+              <input type="radio" name="method" value="both" hidden>
+            </div>
+          </div>
+
+          <!-- Minimize DFA Button (Primary CTA Gradient with Forward Arrow) -->
           <button id="runBtn" class="btn primary cta-btn run-gradient-btn" type="button">
             <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
             </svg>
             <span>Minimize DFA</span>
+            <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
           </button>
 
           <!-- Input Message Banner -->
@@ -162,37 +229,6 @@
               <p id="presetNote" class="preset-note-subtle" hidden></p>
             </div>
 
-            <div class="options-group">
-              <label class="field-label-sm">Minimization Algorithm</label>
-              <div class="segmented-control" role="radiogroup">
-                <label class="segment-option">
-                  <input type="radio" name="method" value="tf" checked>
-                  <span class="segment-pill">Table-Filling</span>
-                </label>
-                <label class="segment-option">
-                  <input type="radio" name="method" value="pr">
-                  <span class="segment-pill">Partition Refinement</span>
-                </label>
-                <label class="segment-option">
-                  <input type="radio" name="method" value="both">
-                  <span class="segment-pill">Both</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="options-group">
-              <div class="fields-row-2">
-                <div class="field-block">
-                  <label for="startSel" class="field-label-sm">Start State</label>
-                  <select id="startSel" class="form-select"></select>
-                </div>
-                <div class="field-block">
-                  <label class="field-label-sm">Accepting States</label>
-                  <div id="finals" class="chip-group"></div>
-                </div>
-              </div>
-            </div>
-
             <div class="options-footer-actions">
               <input id="importFile" type="file" accept=".json,application/json" hidden>
               <button id="importBtn" type="button" class="btn-text-sm">Import JSON</button>
@@ -203,9 +239,51 @@
 
         <!-- Right Main Column: DFA Visualization -->
         <div class="studio-main">
-          <div class="main-page-header">
-            <h1 class="main-heading">DFA <span class="gradient-text">Minimization</span></h1>
-            <p class="main-subtitle">Find and merge equivalent states to get the smallest DFA.</p>
+          <!-- Main Hero Header matching Reference Image -->
+          <div class="main-page-header hero-header-row">
+            <div class="hero-text-wrap">
+              <h1 class="main-heading">DFA <span class="gradient-text">Minimization</span></h1>
+              <p class="main-subtitle">Minimize a Deterministic Finite Automaton (DFA) using Table-Filling or Partition Refinement.</p>
+            </div>
+            <div class="hero-art-wrap" aria-hidden="true">
+              <svg class="hero-automata-svg" viewBox="0 0 240 70" fill="none">
+                <defs>
+                  <linearGradient id="artGrad" x1="0" y1="0" x2="240" y2="70" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#8b5cf6" stop-opacity="0.8"/>
+                    <stop offset="1" stop-color="#6366f1" stop-opacity="0.5"/>
+                  </linearGradient>
+                </defs>
+                <path d="M 46 35 C 70 12, 100 12, 124 35" stroke="url(#artGrad)" stroke-width="2" fill="none" stroke-dasharray="3 3"/>
+                <path d="M 144 35 C 168 12, 198 12, 214 35" stroke="url(#artGrad)" stroke-width="2" fill="none"/>
+                <path d="M 124 38 C 100 58, 70 58, 46 38" stroke="url(#artGrad)" stroke-width="2" fill="none"/>
+                <path d="M 214 38 C 198 58, 168 58, 144 38" stroke="url(#artGrad)" stroke-width="2" fill="none"/>
+                <circle cx="36" cy="35" r="16" fill="rgba(124, 58, 237, 0.12)" stroke="#7c3aed" stroke-width="2"/>
+                <circle cx="100" cy="20" r="15" fill="rgba(99, 102, 241, 0.12)" stroke="#6366f1" stroke-width="2"/>
+                <circle cx="160" cy="50" r="15" fill="rgba(139, 92, 246, 0.12)" stroke="#8b5cf6" stroke-width="2"/>
+                <circle cx="220" cy="35" r="16" fill="rgba(16, 185, 129, 0.12)" stroke="#10b981" stroke-width="2"/>
+                <circle cx="220" cy="35" r="12" fill="none" stroke="#10b981" stroke-width="1.5"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Minimization Workflow Stepper (4 Steps matching Reference Image) -->
+          <div class="workflow-stepper-bar" role="navigation" aria-label="Minimization Workflow">
+            <button id="wfStep1" type="button" class="wf-step active" data-phase="Input">
+              <span class="wf-num">1</span>
+              <span class="wf-label">Original DFA</span>
+            </button>
+            <button id="wfStep2" type="button" class="wf-step" data-phase="Equivalence">
+              <span class="wf-num">2</span>
+              <span class="wf-label">Equivalence</span>
+            </button>
+            <button id="wfStep3" type="button" class="wf-step" data-phase="Merging">
+              <span class="wf-num">3</span>
+              <span class="wf-label">Merging</span>
+            </button>
+            <button id="wfStep4" type="button" class="wf-step" data-phase="Minimized">
+              <span class="wf-num">4</span>
+              <span class="wf-label">Minimized DFA</span>
+            </button>
           </div>
 
           <!-- Empty State Card (before run) -->
@@ -229,9 +307,11 @@
               <div class="vis-header-left">
                 <div class="target-icon-wrap">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <circle cx="12" cy="12" r="6"></circle>
-                    <circle cx="12" cy="12" r="2"></circle>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="18" r="3"></circle>
+                    <circle cx="12" cy="6" r="3"></circle>
+                    <line x1="8.5" y1="16" x2="10.5" y2="8.5"></line>
+                    <line x1="15.5" y1="16" x2="13.5" y2="8.5"></line>
                   </svg>
                 </div>
                 <h2 id="graphLabel" class="vis-title">Original DFA</h2>
@@ -239,16 +319,16 @@
               </div>
 
               <div class="vis-header-right">
-                <span id="startBadge" class="header-pill start-pill">
+                <span id="startBadge" class="header-pill start-pill" hidden>
                   <svg viewBox="0 0 24 24" fill="currentColor" class="pill-icon"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                   <span>Start: <b id="startBadgeVal">A</b></span>
                 </span>
-                <span id="acceptingBadge" class="header-pill accept-pill">
+                <span id="acceptingBadge" class="header-pill accept-pill" hidden>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="pill-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
                   <span>Accepting: <b id="acceptBadgeVal">C</b></span>
                 </span>
-                <button id="expandBtn" class="btn secondary compact-btn icon-only" type="button" title="Expand diagram (E)" hidden>
-                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button id="expandBtn" class="btn-subtle-expand" type="button" title="Toggle Fullscreen (E)" aria-label="Toggle Fullscreen">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15 3 21 3 21 9"></polyline>
                     <polyline points="9 21 3 21 3 15"></polyline>
                     <line x1="21" y1="3" x2="14" y2="10"></line>
@@ -283,8 +363,8 @@
 
             <!-- Playback Controls & Progress Bar -->
             <div class="playback-container">
-              <!-- Executive KPI Strip -->
-              <div id="summary" class="kpi-strip"></div>
+              <!-- Executive KPI Strip (Internal Sync) -->
+              <div id="summary" class="kpi-strip" hidden></div>
 
               <!-- Phase Stepper -->
               <ol id="timeline" class="phase-stepper" aria-label="Minimization Phases"></ol>
@@ -352,6 +432,100 @@
               </div>
             </div>
           </section>
+
+          <!-- Bottom Cards Row: Result Card + Quick Actions Card matching Reference Image -->
+          <div class="bottom-cards-grid">
+
+            <!-- Card 1: Result Card -->
+            <section id="resultCard" class="card result-card">
+              <div class="section-card-header">
+                <div class="header-icon-bubble ok">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <h3 class="section-card-title">Result</h3>
+              </div>
+
+              <div class="result-card-body">
+                <!-- Success notification box -->
+                <div class="result-success-box">
+                  <div class="success-bubble">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </div>
+                  <div class="success-text-wrap">
+                    <strong class="success-title">DFA minimized successfully!</strong>
+                    <p class="success-sub">Equivalent states have been merged.</p>
+                  </div>
+                </div>
+
+                <!-- KPI: States Reduced -->
+                <div class="result-kpi-box">
+                  <div class="kpi-icon-wrap purple">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                  </div>
+                  <div class="kpi-val-wrap">
+                    <strong id="kpiStatesReduced" class="kpi-main-val">8 → 5</strong>
+                    <span class="kpi-main-lbl">States Reduced</span>
+                  </div>
+                </div>
+
+                <!-- KPI: Final State(s) -->
+                <div class="result-kpi-box">
+                  <div class="kpi-icon-wrap violet">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <circle cx="12" cy="12" r="6"></circle>
+                      <circle cx="12" cy="12" r="2"></circle>
+                    </svg>
+                  </div>
+                  <div class="kpi-val-wrap">
+                    <strong id="kpiFinalStates" class="kpi-main-val">C</strong>
+                    <span class="kpi-main-lbl">Final State(s)</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Card 2: Quick Actions Card -->
+            <section class="card quick-actions-card">
+              <div class="section-card-header">
+                <div class="header-icon-bubble purple">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                  </svg>
+                </div>
+                <h3 class="section-card-title">Quick Actions</h3>
+              </div>
+
+              <div class="quick-actions-body">
+                <button id="downloadDfaBtn" class="action-card-btn" type="button" title="Download minimized DFA schema (JSON)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="action-btn-icon">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download DFA</span>
+                </button>
+
+                <button id="exportImageBtn" class="action-card-btn" type="button" title="Export graph visualization as SVG image">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="action-btn-icon">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  <span>Save as Image</span>
+                </button>
+              </div>
+            </section>
+
+          </div>
 
           <!-- Hidden elements needed by app.js -->
           <ol id="stepList" hidden></ol>
