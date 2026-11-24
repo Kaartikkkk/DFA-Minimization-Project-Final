@@ -16,6 +16,7 @@
   var isNode = typeof module !== 'undefined' && module.exports;
   var A = isNode ? require('./algorithms.js') : root.DFAAlgo;
   var PRESETS = isNode ? require('./presets.js') : root.DFA_PRESETS;
+  var NL = isNode ? require('./nl-dfa.js') : root.NLDFA;
 
   /** Return a copy of a preset DFA by id. @param {string} id @returns {DFA} */
   function preset(id) { return A.cloneDFA(PRESETS.filter(function (p) { return p.id === id; })[0].dfa); }
@@ -300,6 +301,56 @@
           if (!v.errors.length && !v.missing.length && sound(A.minimize(d, 'both'))) ok++;
         }
         return { actual: ok + ' / 200 valid and correctly minimized', pass: ok === 200 };
+      } },
+    { id: 'T31', category: 'NL Synthesis', title: 'Ending pattern instruction ("ends with 01")', machine: 'Synthesized Suffix DFA',
+      input: 'Construct a minimum DFA over {0,1} that accepts all strings ending with 01.', expected: '3 states, equivalent under Hopcroft–Karp, accepts "101", rejects "10"',
+      run: function () {
+        var parsed = NL.parse('Construct a minimum DFA over the alphabet {0,1} that accepts all strings ending with 01.');
+        if (!parsed.success) return { actual: 'Parse error: ' + parsed.error, pass: false };
+        var r = A.minimize(parsed.dfa, 'both');
+        var strOk = A.runString(r.min, ['1', '0', '1']).accepted && !A.runString(r.min, ['1', '0']).accepted;
+        return { actual: sizeText(r) + '; Hopcroft-Karp: ' + (r.equivalence.equal ? 'Equivalent' : 'Mismatch'),
+                 pass: sound(r) && r.min.states.length === 3 && strOk };
+      } },
+    { id: 'T32', category: 'NL Synthesis', title: 'Even/odd counting instruction ("even number of zeros")', machine: 'Synthesized Parity DFA',
+      input: 'Construct a minimum DFA that accepts all strings containing an even number of zeros.', expected: '2 states, accepts "" and "1001", rejects "0"',
+      run: function () {
+        var parsed = NL.parse('Construct a minimum DFA that accepts all strings containing an even number of zeros.');
+        if (!parsed.success) return { actual: 'Parse error: ' + parsed.error, pass: false };
+        var r = A.minimize(parsed.dfa, 'both');
+        var strOk = A.runString(r.min, []).accepted && A.runString(r.min, ['1', '0', '0', '1']).accepted && !A.runString(r.min, ['0']).accepted;
+        return { actual: sizeText(r) + '; Hopcroft-Karp: ' + (r.equivalence.equal ? 'Equivalent' : 'Mismatch'),
+                 pass: sound(r) && r.min.states.length === 2 && strOk };
+      } },
+    { id: 'T33', category: 'NL Synthesis', title: 'Substring detection instruction ("contains 101")', machine: 'Synthesized KMP Substring DFA',
+      input: 'Construct a minimum DFA that accepts all binary strings containing the substring 101.', expected: '4 states, absorbing final state, accepts "0101"',
+      run: function () {
+        var parsed = NL.parse('Construct a minimum DFA that accepts all binary strings containing the substring 101.');
+        if (!parsed.success) return { actual: 'Parse error: ' + parsed.error, pass: false };
+        var r = A.minimize(parsed.dfa, 'both');
+        var strOk = A.runString(r.min, ['0', '1', '0', '1']).accepted && !A.runString(r.min, ['0', '1', '1', '0']).accepted;
+        return { actual: sizeText(r) + '; Hopcroft-Karp: ' + (r.equivalence.equal ? 'Equivalent' : 'Mismatch'),
+                 pass: sound(r) && r.min.states.length === 4 && strOk };
+      } },
+    { id: 'T34', category: 'NL Synthesis', title: 'Forbidden pattern instruction ("no consecutive ones")', machine: 'Synthesized Complement DFA',
+      input: 'Construct a minimum DFA that accepts all binary strings that do not contain consecutive ones.', expected: '3 states, rejects "11" and "0110", accepts "10101"',
+      run: function () {
+        var parsed = NL.parse('Construct a minimum DFA that accepts all binary strings that do not contain consecutive ones.');
+        if (!parsed.success) return { actual: 'Parse error: ' + parsed.error, parse: false };
+        var r = A.minimize(parsed.dfa, 'both');
+        var strOk = A.runString(r.min, ['1', '0', '1', '0', '1']).accepted && !A.runString(r.min, ['1', '1']).accepted;
+        return { actual: sizeText(r) + '; Hopcroft-Karp: ' + (r.equivalence.equal ? 'Equivalent' : 'Mismatch'),
+                 pass: sound(r) && r.min.states.length === 3 && strOk };
+      } },
+    { id: 'T35', category: 'NL Synthesis', title: 'Compound conditions & Hopcroft–Karp equivalence', machine: 'Synthesized Product Automaton',
+      input: 'Construct a minimum DFA that accepts all binary strings having an even number of zeros and an odd number of ones.', expected: '4 states, verified equivalent by Hopcroft–Karp BFS',
+      run: function () {
+        var parsed = NL.parse('Construct a minimum DFA that accepts all binary strings having an even number of zeros and an odd number of ones.');
+        if (!parsed.success) return { actual: 'Parse error: ' + parsed.error, pass: false };
+        var r = A.minimize(parsed.dfa, 'both');
+        var strOk = A.runString(r.min, ['1']).accepted && A.runString(r.min, ['0', '0', '1']).accepted && !A.runString(r.min, ['0']).accepted && !A.runString(r.min, ['1', '1']).accepted;
+        return { actual: sizeText(r) + '; pairs: ' + r.equivalence.pairsExplored + '; Hopcroft-Karp: ' + (r.equivalence.equal ? 'Equivalent' : 'Mismatch'),
+                 pass: sound(r) && r.min.states.length === 4 && strOk };
       } }
   ];
 

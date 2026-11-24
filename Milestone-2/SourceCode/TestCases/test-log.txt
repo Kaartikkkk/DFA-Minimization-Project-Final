@@ -1,4 +1,4 @@
-DFA Minimization Simulator: test log (2026-11-17)
+DFA Minimization Simulator: test log (2026-11-24)
 
 PASS T01 [String test] Accepted string
      machine:  Worked 6-state example (L = 0*10*)
@@ -150,5 +150,30 @@ PASS T30 [Feature] Random DFA generator gives valid machines
      input:    Random DFA
      expected: Every machine is a valid, complete DFA and minimizes correctly
      actual:   200 / 200 valid and correctly minimized
+PASS T31 [NL Synthesis] Ending pattern instruction ("ends with 01")
+     machine:  Synthesized Suffix DFA
+     input:    Construct a minimum DFA over {0,1} that accepts all strings ending with 01.
+     expected: 3 states, equivalent under Hopcroft–Karp, accepts "101", rejects "10"
+     actual:   3 states; Hopcroft-Karp: Equivalent
+PASS T32 [NL Synthesis] Even/odd counting instruction ("even number of zeros")
+     machine:  Synthesized Parity DFA
+     input:    Construct a minimum DFA that accepts all strings containing an even number of zeros.
+     expected: 2 states, accepts "" and "1001", rejects "0"
+     actual:   2 states; Hopcroft-Karp: Equivalent
+PASS T33 [NL Synthesis] Substring detection instruction ("contains 101")
+     machine:  Synthesized KMP Substring DFA
+     input:    Construct a minimum DFA that accepts all binary strings containing the substring 101.
+     expected: 4 states, absorbing final state, accepts "0101"
+     actual:   4 states; Hopcroft-Karp: Equivalent
+PASS T34 [NL Synthesis] Forbidden pattern instruction ("no consecutive ones")
+     machine:  Synthesized Complement DFA
+     input:    Construct a minimum DFA that accepts all binary strings that do not contain consecutive ones.
+     expected: 3 states, rejects "11" and "0110", accepts "10101"
+     actual:   3 states; Hopcroft-Karp: Equivalent
+PASS T35 [NL Synthesis] Compound conditions & Hopcroft–Karp equivalence
+     machine:  Synthesized Product Automaton
+     input:    Construct a minimum DFA that accepts all binary strings having an even number of zeros and an odd number of ones.
+     expected: 4 states, verified equivalent by Hopcroft–Karp BFS
+     actual:   4 states; pairs: 4; Hopcroft-Karp: Equivalent
 
-30 / 30 tests passed.
+35 / 35 tests passed.

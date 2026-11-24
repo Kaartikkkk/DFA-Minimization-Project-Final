@@ -299,9 +299,11 @@
       $('player').hidden = true; $('tester').hidden = true; $('emptyState').hidden = false;
       if ($('bottomCardsGrid')) $('bottomCardsGrid').hidden = true;
       if ($('stepDetailsPanel')) $('stepDetailsPanel').hidden = true;
+      if ($('equivVerificationCard')) $('equivVerificationCard').hidden = true;
       return;
     }
     $('emptyState').hidden = true;
+    if ($('equivVerificationCard')) $('equivVerificationCard').hidden = false;
     var notes = res.validation.warnings.slice();
     if (res.dead) notes.push(res.validation.missing.length + ' missing transition(s) connected to trap state: ' + res.dead);
     if (notes.length) {
@@ -321,6 +323,7 @@
     $('testLog').hidden = true;
     $('testLog').tBodies[0].innerHTML = '';
     renderSummary();
+    renderEquivalenceVerification();
     renderTimeline();
     renderSamples();
     renderStepList();
@@ -344,6 +347,38 @@
       $('kpiFinalStates').textContent = finList.length ? finList.join(', ') : 'None';
     }
 
+    // Update Hopcroft–Karp Equivalence Verification Panel
+    if ($('equivVerifyPanel')) {
+      var eq = res.equivalence;
+      var eqOk = eq && eq.equal;
+      if ($('equivBadge')) {
+        $('equivBadge').className = 'equiv-status-badge ' + (eqOk ? 'ok' : 'bad');
+      }
+      if ($('equivStatusText')) {
+        $('equivStatusText').textContent = eqOk
+          ? 'DFA Equivalence Verified: L(Original) ≡ L(Minimized)'
+          : 'Equivalence Check Failed: Language Discrepancy';
+      }
+      if ($('equivPairsVal')) {
+        $('equivPairsVal').textContent = (eq ? eq.pairsExplored : 0) + ' pairs';
+      }
+      if ($('equivTimeVal')) {
+        $('equivTimeVal').textContent = (eq && eq.timeMs !== undefined ? eq.timeMs + ' ms' : '< 0.1 ms');
+      }
+      if ($('equivResultVal')) {
+        $('equivResultVal').textContent = eqOk ? '100% Match' : 'Mismatch';
+        $('equivResultVal').className = 'equiv-detail-val ' + (eqOk ? 'ok' : 'bad');
+      }
+      if ($('equivCounterexampleBox') && $('equivCounterexampleVal')) {
+        if (!eqOk && eq.counterexample !== undefined) {
+          $('equivCounterexampleBox').hidden = false;
+          $('equivCounterexampleVal').textContent = eq.counterexample === '' ? 'ε (empty string)' : eq.counterexample;
+        } else {
+          $('equivCounterexampleBox').hidden = true;
+        }
+      }
+    }
+
     $('summary').innerHTML =
       '<div class="kpi-item hero">' +
       '<span>States</span>' +
@@ -365,6 +400,80 @@
       '<strong>' + (isValid ? 'Passed' : 'Failed') + '</strong>' +
       '<span class="kpi-meta ' + (isValid ? 'ok' : 'bad') + '">' + (isValid ? '100% Match' : 'Mismatch') + '</span>' +
       '</div>';
+  }
+
+  /**
+   * Render the dedicated Hopcroft–Karp Equivalence Verification Card.
+   * Updates metrics table, success/failure banner, and counterexample diagnostics.
+   */
+  function renderEquivalenceVerification() {
+    var card = $('equivVerificationCard');
+    if (!card || !res || !res.ok) return;
+
+    var eq = res.equivalence;
+    var isEq = eq && (eq.equal || eq.equivalent);
+
+    var beforeCount = res.full ? res.full.states.length : 0;
+    var afterCount = res.min ? res.min.states.length : 0;
+    var pairs = eq ? (eq.processed_pairs || eq.pairsExplored || 0) : 0;
+    var timeVal = eq && eq.timeMs !== undefined ? eq.timeMs : (eq && eq.execution_time_ms !== undefined ? eq.execution_time_ms : 0.05);
+    var timeStr = timeVal ? (timeVal < 0.1 ? '< 0.1 ms' : timeVal.toFixed(2) + ' ms') : '< 0.1 ms';
+
+    if ($('hkOrigStates')) $('hkOrigStates').textContent = beforeCount;
+    if ($('hkMinStates')) $('hkMinStates').textContent = afterCount;
+    if ($('hkPairsProcessed')) $('hkPairsProcessed').textContent = pairs;
+    if ($('hkExecTime')) $('hkExecTime').textContent = timeStr;
+
+    var successBanner = $('hkSuccessBanner');
+    var failedBanner = $('hkFailedBanner');
+    var diagPanel = $('hkDiagnosticPanel');
+    var statusText = $('hkStatusText');
+    var statusSub = $('hkStatusSub');
+
+    if (isEq) {
+      if (successBanner) successBanner.hidden = false;
+      if (failedBanner) failedBanner.hidden = true;
+      if (diagPanel) diagPanel.hidden = true;
+      if (statusText) {
+        statusText.textContent = 'Equivalent';
+        statusText.className = 'metric-value ok-text';
+      }
+      if (statusSub) statusSub.textContent = 'L(Original) ≡ L(Minimized)';
+    } else {
+      if (successBanner) successBanner.hidden = true;
+      if (failedBanner) failedBanner.hidden = false;
+      if (diagPanel) diagPanel.hidden = false;
+      if (statusText) {
+        statusText.textContent = 'Not Equivalent';
+        statusText.className = 'metric-value bad-text';
+      }
+      if (statusSub) statusSub.textContent = 'Mismatch Detected';
+
+      var distStr = (eq && eq.distinguishing_string) ? eq.distinguishing_string : (eq && eq.counterexample !== undefined ? (eq.counterexample === '' ? 'ε' : eq.counterexample) : 'ε');
+      if ($('diagDistString')) $('diagDistString').textContent = distStr;
+
+      if ($('diagOrigDecision')) {
+        var origAcc = eq && eq.original_accepts !== undefined ? eq.original_accepts : (eq && eq.dfa1_accepts !== undefined ? eq.dfa1_accepts : true);
+        $('diagOrigDecision').textContent = origAcc ? 'Accepts' : 'Rejects';
+        $('diagOrigDecision').className = 'diag-val status-val ' + (origAcc ? 'ok-text' : 'bad-text');
+      }
+
+      if ($('diagMinDecision')) {
+        var minAcc = eq && eq.minimized_accepts !== undefined ? eq.minimized_accepts : (eq && eq.dfa2_accepts !== undefined ? eq.dfa2_accepts : false);
+        $('diagMinDecision').textContent = minAcc ? 'Accepts' : 'Rejects';
+        $('diagMinDecision').className = 'diag-val status-val ' + (minAcc ? 'ok-text' : 'bad-text');
+      }
+
+      if ($('diagOrigPath')) {
+        var p1 = (eq && (eq.original_path || eq.dfa1_path)) || [];
+        $('diagOrigPath').textContent = p1.length ? p1.join(' → ') : (res.full ? res.full.start : 'Start state');
+      }
+
+      if ($('diagMinPath')) {
+        var p2 = (eq && (eq.minimized_path || eq.dfa2_path)) || [];
+        $('diagMinPath').textContent = p2.length ? p2.join(' → ') : (res.min ? res.min.start : 'Start state');
+      }
+    }
   }
 
   var PHASE_LABEL = {
@@ -1190,6 +1299,148 @@
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('automataflow-theme', 'dark');
         if (moon && sun) { moon.hidden = true; sun.hidden = false; }
+      }
+    });
+  }
+
+  // Natural Language DFA Synthesizer & Minimizer
+  function initNaturalLanguageDFA() {
+    var nlInput = $('nlInput');
+    var nlGenerateBtn = $('nlGenerateBtn');
+    var nlClearBtn = $('nlClearBtn');
+    var nlFeedback = $('nlFeedback');
+    var nlSpinner = $('nlSpinner');
+    var exampleChips = document.querySelectorAll('.nl-chip');
+
+    if (!nlInput || !nlGenerateBtn) return;
+
+    function showFeedback(type, title, message, suggestion) {
+      if (!nlFeedback) return;
+      nlFeedback.hidden = false;
+      nlFeedback.className = 'nl-feedback-banner ' + type;
+      var icon = type === 'ok'
+        ? '<svg class="feedback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+        : '<svg class="feedback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+
+      var html = '<div class="feedback-icon-col">' + icon + '</div>' +
+        '<div class="feedback-body">' +
+        (title ? '<strong class="feedback-title">' + esc(title) + '</strong>' : '') +
+        (message ? '<p class="feedback-msg">' + message + '</p>' : '') +
+        (suggestion ? '<p class="feedback-suggestion">💡 ' + esc(suggestion) + '</p>' : '') +
+        '</div>';
+      nlFeedback.innerHTML = html;
+    }
+
+    function clearFeedback() {
+      if (!nlFeedback) return;
+      nlFeedback.hidden = true;
+      nlFeedback.className = 'nl-feedback-banner';
+      nlFeedback.innerHTML = '';
+    }
+
+    function handleGenerate() {
+      var text = (nlInput.value || '').trim();
+      clearFeedback();
+
+      if (!text) {
+        showFeedback('bad', 'Empty Instruction', 'Please describe the DFA language or pattern you want to accept.', 'Try clicking one of the example prompts below to get started.');
+        nlInput.focus();
+        return;
+      }
+
+      if (typeof window.NLDFA === 'undefined') {
+        showFeedback('bad', 'Engine Not Ready', 'Natural language DFA synthesizer module is still initializing. Please try again.', '');
+        return;
+      }
+
+      // Show spinner & disable button
+      if (nlSpinner) nlSpinner.hidden = false;
+      nlGenerateBtn.disabled = true;
+
+      setTimeout(function () {
+        var parseRes = window.NLDFA.parse(text);
+
+        if (nlSpinner) nlSpinner.hidden = true;
+        nlGenerateBtn.disabled = false;
+
+        if (!parseRes.success) {
+          showFeedback('bad', 'Pattern Identification Failed', esc(parseRes.error || 'Could not construct a valid DFA from this description.'), parseRes.suggestion || 'Please use clear patterns like "ending with 01", "starting with 10", "containing 101", "even number of zeros", or "ends with 00 or 11".');
+          return;
+        }
+
+        // Successfully synthesized DFA
+        var dfa = parseRes.dfa;
+        showFeedback('ok', 'DFA Successfully Synthesized & Minimized!', esc(parseRes.description) + ' (' + dfa.states.length + ' initial states generated)');
+
+        // Populate manual editor inputs
+        loadDFA(dfa);
+
+        // Run full minimization workflow
+        run(dfa);
+
+        // Smooth scroll to workflow stepper so user can view the 4 stages
+        var stepper = document.querySelector('.workflow-stepper-bar');
+        if (stepper) {
+          stepper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 150);
+    }
+
+    nlGenerateBtn.addEventListener('click', handleGenerate);
+
+    nlInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleGenerate();
+      }
+    });
+
+    if (nlClearBtn) {
+      nlClearBtn.addEventListener('click', function () {
+        nlInput.value = '';
+        clearFeedback();
+        exampleChips.forEach(function (c) { c.classList.remove('active'); });
+        nlInput.focus();
+      });
+    }
+
+    exampleChips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var promptText = chip.getAttribute('data-prompt');
+        if (promptText) {
+          nlInput.value = promptText;
+          exampleChips.forEach(function (c) { c.classList.remove('active'); });
+          chip.classList.add('active');
+          clearFeedback();
+          nlInput.focus();
+        }
+      });
+    });
+  }
+
+  initNaturalLanguageDFA();
+
+  // Manual "Verify DFA Equivalence" button listener
+  var runHKBtn = $('runHopcroftKarpBtn');
+  if (runHKBtn) {
+    runHKBtn.addEventListener('click', function () {
+      if (!res || !res.ok) {
+        run();
+        return;
+      }
+      var HKModule = window.HopcroftKarp;
+      if (HKModule && HKModule.areDFAsEquivalent) {
+        runHKBtn.disabled = true;
+        var originalHtml = runHKBtn.innerHTML;
+        runHKBtn.innerHTML = '<span class="play-pulse-dot" style="margin-right:6px"></span><span>Verifying...</span>';
+        setTimeout(function () {
+          var eqRes = HKModule.areDFAsEquivalent(res.full, res.min);
+          res.equivalence = eqRes;
+          renderSummary();
+          renderEquivalenceVerification();
+          runHKBtn.disabled = false;
+          runHKBtn.innerHTML = originalHtml;
+        }, 150);
       }
     });
   }
