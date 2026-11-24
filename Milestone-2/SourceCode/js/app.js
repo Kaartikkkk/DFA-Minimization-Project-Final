@@ -521,6 +521,8 @@
       if (qsp) qsp.textContent = on ? 'Show Sidebar' : 'Sidebar';
     }
     if ($('actionSidebarBtn')) {
+      $('actionSidebarBtn').title = on ? 'Show Sidebar (F)' : 'Hide Sidebar (F)';
+      $('actionSidebarBtn').setAttribute('aria-label', on ? 'Show Sidebar' : 'Toggle Sidebar');
       var asp = $('actionSidebarBtn').querySelector('span');
       if (asp) asp.textContent = on ? 'Show Sidebar' : 'Toggle Sidebar';
     }

@@ -24,12 +24,23 @@ Open `SourceCode/index.html` in Chrome, Edge or Firefox. It works offline, and n
 
 In the browser, open the **Test cases** tab. From a terminal (needs Node.js 14+):
 
-```
+```bash
 cd SourceCode
+
+# 1. Primary Simulator Test Suite (35 tests)
 node tests/test.js
+
+# 2. Natural Language Synthesizer Suite (14 tests)
+node tests/test-nl.js
+
+# 3. Hopcroft–Karp Equivalence Suite (10 tests)
+node tests/test-hopcroft-karp.js
+
+# 4. Diagram Layout & Routing Suite (15 tests)
+node tests/test-graph-layout.js
 ```
 
-Expected output ends with `30 / 30 tests passed.`
+Expected output ends with `35 / 35 tests passed.` (all suites 100% passing).
 
 ## Submission checklist (Milestone-II guide, section 9)
 

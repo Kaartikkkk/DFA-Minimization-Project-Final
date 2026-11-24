@@ -335,44 +335,53 @@
 
             // Candidate 1: Standard direct & bidirectional curve bends
             var directBends = hasReverse
-              ? [-38, 38, -55, 55, -75, 75]
-              : [0, 16, -16, 32, -32, 50, -50, 70, -70];
+              ? [38, 55, 75, -38, -55, -75]
+              : [0, 18, -18, 36, -36, 55, -55];
             directBends.forEach(function (b) {
               var c1 = { x: S.x + 0.33 * dx + nx * b, y: S.y + 0.33 * dy + ny * b };
               var c2 = { x: S.x + 0.67 * dx + nx * b, y: S.y + 0.67 * dy + ny * b };
-              candidateOptions.push(buildEndpoints(c1, c2));
+              var opt = buildEndpoints(c1, c2);
+              opt.penalty = Math.abs(b);
+              candidateOptions.push(opt);
             });
 
-            // Candidate 2: Top Corridor Arches
-            var minY = Math.min(S.y, D.y);
-            dfa.states.forEach(function (os) {
-              minY = Math.min(minY, pos[os].y - pos[os].r);
-            });
-            [42, 75, 110, 145].forEach(function (lift) {
-              var yArch = minY - lift;
-              var c1 = { x: S.x + (D.x - S.x) * 0.2, y: yArch };
-              var c2 = { x: S.x + (D.x - S.x) * 0.8, y: yArch };
-              candidateOptions.push(buildEndpoints(c1, c2));
-            });
+            // Candidate 2 & 3: Top and Bottom Corridor Arches (ONLY for multi-column horizontal spans)
+            if (Math.abs(dx) >= 80) {
+              var minY = Math.min(S.y, D.y);
+              dfa.states.forEach(function (os) {
+                minY = Math.min(minY, pos[os].y - pos[os].r);
+              });
+              [42, 75, 110].forEach(function (lift) {
+                var yArch = minY - lift;
+                var c1 = { x: S.x + (D.x - S.x) * 0.25, y: yArch };
+                var c2 = { x: S.x + (D.x - S.x) * 0.75, y: yArch };
+                var opt = buildEndpoints(c1, c2);
+                opt.penalty = 200 + lift * 2;
+                candidateOptions.push(opt);
+              });
 
-            // Candidate 3: Bottom Corridor Arches
-            var maxY = Math.max(S.y, D.y);
-            dfa.states.forEach(function (os) {
-              maxY = Math.max(maxY, pos[os].y + pos[os].r);
-            });
-            [42, 75, 110, 145].forEach(function (drop) {
-              var yArch = maxY + drop;
-              var c1 = { x: S.x + (D.x - S.x) * 0.2, y: yArch };
-              var c2 = { x: S.x + (D.x - S.x) * 0.8, y: yArch };
-              candidateOptions.push(buildEndpoints(c1, c2));
-            });
+              var maxY = Math.max(S.y, D.y);
+              dfa.states.forEach(function (os) {
+                maxY = Math.max(maxY, pos[os].y + pos[os].r);
+              });
+              [42, 75, 110].forEach(function (drop) {
+                var yArch = maxY + drop;
+                var c1 = { x: S.x + (D.x - S.x) * 0.25, y: yArch };
+                var c2 = { x: S.x + (D.x - S.x) * 0.75, y: yArch };
+                var opt = buildEndpoints(c1, c2);
+                opt.penalty = 200 + drop * 2;
+                candidateOptions.push(opt);
+              });
+            }
 
             // Candidate 4: Lateral Arches for Vertical / Intra-Column Edges
             if (Math.abs(dx) < 65) {
-              [-75, 75, -115, 115].forEach(function (lateral) {
+              [-50, 50, -75, 75].forEach(function (lateral) {
                 var c1 = { x: S.x + lateral, y: S.y + 0.3 * dy };
                 var c2 = { x: S.x + lateral, y: S.y + 0.7 * dy };
-                candidateOptions.push(buildEndpoints(c1, c2));
+                var opt = buildEndpoints(c1, c2);
+                opt.penalty = Math.abs(lateral);
+                candidateOptions.push(opt);
               });
             }
 
@@ -391,8 +400,19 @@
                 if (d < minClear) minClear = d;
               }
 
-              // Favor paths that have safe clearance (>= 22px) and lower deflection
-              var score = minClear >= 22 ? 1000 + minClear : minClear;
+              // Discard degenerate collinear curves that retrace on themselves
+              var isDegenerateX = Math.abs(opt.p0.x - opt.c1.x) < 0.5 && Math.abs(opt.c1.x - opt.c2.x) < 0.5 && Math.abs(opt.c2.x - opt.p3.x) < 0.5;
+              var isDegenerateY = Math.abs(opt.p0.y - opt.c1.y) < 0.5 && Math.abs(opt.c1.y - opt.c2.y) < 0.5 && Math.abs(opt.c2.y - opt.p3.y) < 0.5;
+              if ((isDegenerateX || isDegenerateY) && dist > 35) {
+                continue;
+              }
+
+              // Favor paths that have safe clearance (>= 20px) and lower deflection penalty
+              var penalty = opt.penalty || 0;
+              var score = minClear >= 20
+                ? 1000 - penalty + Math.min(minClear, 45)
+                : minClear - penalty;
+
               if (score > maxClearance) {
                 maxClearance = score;
                 bestOption = opt;
@@ -447,7 +467,7 @@
 
           // Create SVG and internal groups
           var svg = el('svg', {
-            class: 'dfa-svg',
+            class: 'dfa-svg graph-svg dfa-diagram-svg',
             role: 'img',
             'aria-label': 'DFA State Transition Diagram',
             xmlns: NS
@@ -645,7 +665,7 @@
               });
 
               // Auto-calculate bounded diagram viewBox with comfortable padding
-              var pad = 36;
+              var pad = 44;
               var initialVB = {
                 x: minX - pad,
                 y: minY - pad,
