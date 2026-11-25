@@ -68,9 +68,9 @@
   /** Calculate circle radius that comfortably fits the state label. */
   function radius(name) {
     var len = String(name).length;
-    if (len <= 2) return 26;
-    if (len <= 4) return 29;
-    return Math.max(26, 14 + len * 4.6);
+    if (len <= 2) return 30;
+    if (len <= 4) return 33;
+    return Math.max(30, 16 + len * 5);
   }
 
   /** Point at parameter t on a cubic Bezier curve. */
@@ -237,18 +237,18 @@
     var maxInCol = Math.max.apply(null, cols.map(function (c) { return c.length; }));
 
     // Spacious column width and row height
-    var colW = Math.max(220, Math.min(280, 200 + Math.min(N, 12) * 5));
-    var rowH = Math.max(135, Math.min(180, 120 + Math.min(maxInCol, 6) * 8));
+    var colW = Math.max(280, Math.min(360, 260 + Math.min(N, 12) * 8));
+    var rowH = Math.max(180, Math.min(250, 160 + Math.min(maxInCol, 6) * 15));
 
     var pos = {};
-    var baseY = 210;
+    var baseY = 240;
 
     cols.forEach(function (col, ci) {
       var m = col.length;
       col.forEach(function (s, ri) {
         var yPos = baseY + (ri - (m - 1) / 2) * rowH;
         pos[s] = {
-          x: 130 + ci * colW,
+          x: 160 + ci * colW,
           y: yPos,
           r: radius(s),
           col: ci,
@@ -258,14 +258,14 @@
     });
 
     // 8. Physical relaxation to prevent any state circles from touching
-    for (var iter = 0; iter < 20; iter++) {
+    for (var iter = 0; iter < 24; iter++) {
       dfa.states.forEach(function (s1, i1) {
         for (var i2 = i1 + 1; i2 < dfa.states.length; i2++) {
           var s2 = dfa.states[i2];
           var p1 = pos[s1], p2 = pos[s2];
           var dx = p2.x - p1.x, dy = p2.y - p1.y;
           var d = Math.hypot(dx, dy) || 1;
-          var minDist = p1.r + p2.r + 48; // minimum 48px clearance
+          var minDist = p1.r + p2.r + 56; // minimum 56px clearance
           if (d < minDist) {
             var push = (minDist - d) / 2;
             var nx = dx / d, ny = dy / d;
@@ -304,7 +304,7 @@
         if (t === undefined || !pos[t]) return;
         var k = s + '\u0000' + t;
         if (!edges[k]) {
-          edges[k] = { from: s, to: t, syms: [] };
+          edges[k] = { k: k, from: s, to: t, syms: [] };
           order.push(k);
         }
         edges[k].syms.push(a);
@@ -405,14 +405,157 @@
     });
 
     // -------------------------------------------------------------------------
-    // Phase 2: Compute incoming edge counts per node to distribute arrival ports
+    // Phase 2: Compute Incoming & Outgoing Port Angles for ALL Nodes
     // -------------------------------------------------------------------------
-    var incomingByDest = {};
+    var incomingByNodeSector = {}; // key: node + '|' + sector
+    var outgoingByNodeSector = {}; // key: node + '|' + sector
+
     order.forEach(function (k) {
       var e = edges[k];
       if (e.from === e.to) return;
-      incomingByDest[e.to] = incomingByDest[e.to] || [];
-      incomingByDest[e.to].push(e);
+      var S = pos[e.from], D = pos[e.to];
+      var isArch = (topArchConfig[k] !== undefined || botArchConfig[k] !== undefined);
+
+      // Determine sector entering destination D:
+      var inSector;
+      if (isArch) {
+        inSector = (S.x > D.x) ? 'EAST' : 'WEST';
+      } else if (S.col < D.col || S.x < D.x - 30) {
+        inSector = 'WEST'; // arriving from left
+      } else if (S.col > D.col || S.x > D.x + 30) {
+        inSector = 'EAST'; // arriving from right
+      } else if (S.y < D.y) {
+        inSector = 'NORTH'; // arriving from above
+      } else {
+        inSector = 'SOUTH'; // arriving from below
+      }
+
+      var inKey = e.to + '|' + inSector;
+      (incomingByNodeSector[inKey] = incomingByNodeSector[inKey] || []).push(e);
+
+      // Determine sector departing source S:
+      var outSector;
+      if (isArch) {
+        outSector = (D.x > S.x) ? 'EAST' : 'WEST';
+      } else if (D.col > S.col || D.x > S.x + 30) {
+        outSector = 'EAST'; // departing to right
+      } else if (D.col < S.col || D.x < S.x - 30) {
+        outSector = 'WEST'; // departing to left
+      } else if (D.y > S.y) {
+        outSector = 'SOUTH'; // departing downward
+      } else {
+        outSector = 'NORTH'; // departing upward
+      }
+
+      var outKey = e.from + '|' + outSector;
+      (outgoingByNodeSector[outKey] = outgoingByNodeSector[outKey] || []).push(e);
+    });
+
+    var edgeDestAngle = {};
+    var edgeStartAngle = {};
+
+    // Distribute Arrival Ports around destination nodes
+    Object.keys(incomingByNodeSector).forEach(function (inKey) {
+      var parts = inKey.split('|');
+      var node = parts[0], sector = parts[1];
+      var list = incomingByNodeSector[inKey];
+
+      list.sort(function (a, b) {
+        var sa = pos[a.from], sb = pos[b.from];
+        return sa.y - sb.y;
+      });
+
+      var count = list.length;
+      list.forEach(function (e, idx) {
+        var ang;
+        if (sector === 'WEST') {
+          if (count === 1) {
+            ang = Math.PI;
+          } else if (count === 2) {
+            ang = idx === 0 ? Math.PI - 0.40 : Math.PI + 0.40;
+          } else {
+            var span = 0.95;
+            ang = (Math.PI - span / 2) + idx * (span / (count - 1));
+          }
+        } else if (sector === 'EAST') {
+          if (count === 1) {
+            ang = 0;
+          } else if (count === 2) {
+            ang = idx === 0 ? -0.40 : 0.40;
+          } else {
+            var span = 0.95;
+            ang = (-span / 2) + idx * (span / (count - 1));
+          }
+        } else if (sector === 'NORTH') {
+          if (count === 1) {
+            ang = -Math.PI / 2;
+          } else {
+            var span = 0.65;
+            ang = (-Math.PI / 2 - span / 2) + idx * (span / (count - 1));
+          }
+        } else {
+          // SOUTH
+          if (count === 1) {
+            ang = Math.PI / 2;
+          } else {
+            var span = 0.65;
+            ang = (Math.PI / 2 - span / 2) + idx * (span / (count - 1));
+          }
+        }
+        edgeDestAngle[e.k] = ang;
+      });
+    });
+
+    // Distribute Departure Ports around source nodes
+    Object.keys(outgoingByNodeSector).forEach(function (outKey) {
+      var parts = outKey.split('|');
+      var node = parts[0], sector = parts[1];
+      var list = outgoingByNodeSector[outKey];
+
+      list.sort(function (a, b) {
+        var da = pos[a.to], db = pos[b.to];
+        return da.y - db.y;
+      });
+
+      var count = list.length;
+      list.forEach(function (e, idx) {
+        var ang;
+        if (sector === 'EAST') {
+          if (count === 1) {
+            ang = 0;
+          } else if (count === 2) {
+            ang = idx === 0 ? -0.34 : 0.34;
+          } else {
+            var span = 0.80;
+            ang = (-span / 2) + idx * (span / (count - 1));
+          }
+        } else if (sector === 'WEST') {
+          if (count === 1) {
+            ang = Math.PI;
+          } else if (count === 2) {
+            ang = idx === 0 ? Math.PI - 0.34 : Math.PI + 0.34;
+          } else {
+            var span = 0.80;
+            ang = (Math.PI - span / 2) + idx * (span / (count - 1));
+          }
+        } else if (sector === 'NORTH') {
+          if (count === 1) {
+            ang = -Math.PI / 2;
+          } else {
+            var span = 0.60;
+            ang = (-Math.PI / 2 - span / 2) + idx * (span / (count - 1));
+          }
+        } else {
+          // SOUTH
+          if (count === 1) {
+            ang = Math.PI / 2;
+          } else {
+            var span = 0.60;
+            ang = (Math.PI / 2 - span / 2) + idx * (span / (count - 1));
+          }
+        }
+        edgeStartAngle[e.k] = ang;
+      });
     });
 
     var routed = [];
@@ -444,23 +587,26 @@
             score -= 1000;
           }
 
-          // Prefer top and bottom orientations
-          if (Math.abs(ang - (-Math.PI / 2)) < 0.1 || Math.abs(ang - (Math.PI / 2)) < 0.1) {
-            score += 40;
-          }
+          // Prefer top if node is in upper half, or bottom if node is in lower half
+          if (S.y <= midGlobalY && Math.abs(ang - (-Math.PI / 2)) < 0.1) score += 50;
+          if (S.y > midGlobalY && Math.abs(ang - (Math.PI / 2)) < 0.1) score += 50;
 
-          var testX = S.x + Math.cos(ang) * (S.r + 65);
-          var testY = S.y + Math.sin(ang) * (S.r + 65);
+          var testX = S.x + Math.cos(ang) * (S.r + 70);
+          var testY = S.y + Math.sin(ang) * (S.r + 70);
 
           // Penalize proximity to other state circles
           dfa.states.forEach(function (os) {
             if (os === e.from) return;
             var O = pos[os];
             var dist = Math.hypot(testX - O.x, testY - O.y);
-            if (dist < O.r + 48) {
-              score -= (O.r + 48 - dist) * 12;
+            if (dist < O.r + 55) {
+              score -= (O.r + 55 - dist) * 15;
             }
           });
+
+          // Penalize pointing into incoming edges
+          if (incomingByNodeSector[e.from + '|WEST'] && Math.abs(ang - Math.PI) < 0.5) score -= 80;
+          if (incomingByNodeSector[e.from + '|EAST'] && Math.abs(ang - 0) < 0.5) score -= 80;
 
           if (score > bestScore) {
             bestScore = score;
@@ -468,16 +614,16 @@
           }
         });
 
-        var H = 46, delta = 0.44;
+        var H = 50, delta = 0.42;
         var s0 = { x: S.x + Math.cos(bestAngle - delta) * S.r, y: S.y + Math.sin(bestAngle - delta) * S.r };
         var e0 = { x: S.x + Math.cos(bestAngle + delta) * (S.r + 3.5), y: S.y + Math.sin(bestAngle + delta) * (S.r + 3.5) };
-        var c1 = { x: S.x + Math.cos(bestAngle - 0.60) * (S.r + H + 8), y: S.y + Math.sin(bestAngle - 0.60) * (S.r + H + 8) };
-        var c2 = { x: S.x + Math.cos(bestAngle + 0.60) * (S.r + H + 8), y: S.y + Math.sin(bestAngle + 0.60) * (S.r + H + 8) };
+        var c1 = { x: S.x + Math.cos(bestAngle - 0.58) * (S.r + H + 10), y: S.y + Math.sin(bestAngle - 0.58) * (S.r + H + 10) };
+        var c2 = { x: S.x + Math.cos(bestAngle + 0.58) * (S.r + H + 10), y: S.y + Math.sin(bestAngle + 0.58) * (S.r + H + 10) };
 
         e.curve = { p0: s0, p1: c1, p2: c2, p3: e0 };
         e.labelPt = {
-          x: S.x + Math.cos(bestAngle) * (S.r + H + 15),
-          y: S.y + Math.sin(bestAngle) * (S.r + H + 15)
+          x: S.x + Math.cos(bestAngle) * (S.r + H + 18),
+          y: S.y + Math.sin(bestAngle) * (S.r + H + 18)
         };
         e.isSelf = true;
         routed.push(e);
@@ -495,11 +641,14 @@
       var nx = -dy / dist, ny = dx / dist; // Unit normal vector pointing to the left of the path
 
       function buildEndpoints(c1, c2, customStartAngle, customDestAngle) {
+        var startAng = customStartAngle !== undefined ? customStartAngle : edgeStartAngle[k];
+        var destAng = customDestAngle !== undefined ? customDestAngle : edgeDestAngle[k];
+
         var p0;
-        if (customStartAngle !== undefined) {
+        if (startAng !== undefined) {
           p0 = {
-            x: S.x + Math.cos(customStartAngle) * S.r,
-            y: S.y + Math.sin(customStartAngle) * S.r
+            x: S.x + Math.cos(startAng) * S.r,
+            y: S.y + Math.sin(startAng) * S.r
           };
         } else {
           var tsX = c1.x - S.x, tsY = c1.y - S.y, tsD = Math.hypot(tsX, tsY) || 1;
@@ -507,10 +656,10 @@
         }
 
         var p3;
-        if (customDestAngle !== undefined) {
+        if (destAng !== undefined) {
           p3 = {
-            x: D.x + Math.cos(customDestAngle) * (D.r + 3.5),
-            y: D.y + Math.sin(customDestAngle) * (D.r + 3.5)
+            x: D.x + Math.cos(destAng) * (D.r + 3.5),
+            y: D.y + Math.sin(destAng) * (D.r + 3.5)
           };
         } else {
           var tdX = D.x - c2.x, tdY = D.y - c2.y, tdD = Math.hypot(tdX, tdY) || 1;
@@ -528,27 +677,20 @@
       if (topArchConfig[k] !== undefined) {
         var cfg = topArchConfig[k];
         var tier = cfg.globalTier;
-        var lift = 58 + tier * 38;
+        var lift = 95 + tier * 44; // Starts 95px above minGlobalY, completely clearing self-loops
         var yArch = minGlobalY - lift;
 
         var startAngle, destAngle;
         if (isBack) {
-          // Arriving from the right into D: distribute arrival angles in upper-right quadrant
-          if (cfg.destTotal === 1) {
-            destAngle = -Math.PI * 0.16; // -28 deg
-          } else {
-            var step = 0.50 / Math.max(1, cfg.destTotal - 1);
-            destAngle = -0.22 - cfg.destIdx * step;
-          }
-          startAngle = -Math.PI + 0.65 - cfg.destIdx * 0.18; // departing S towards top-left
+          destAngle = -0.22 - cfg.destIdx * 0.28;
+          startAngle = -Math.PI * 0.80;
         } else {
-          // Forward leap from left to right: distribute in upper-left quadrant
-          destAngle = -Math.PI + 0.44 + cfg.destIdx * 0.22;
-          startAngle = -0.44 - cfg.destIdx * 0.22;
+          destAngle = -Math.PI * 0.78 + cfg.destIdx * 0.28;
+          startAngle = -0.22;
         }
 
-        var c1 = { x: S.x + Math.cos(startAngle) * (60 + tier * 15), y: yArch };
-        var c2 = { x: D.x + Math.cos(destAngle) * (60 + tier * 15), y: yArch };
+        var c1 = { x: S.x + Math.cos(startAngle) * (70 + tier * 18), y: yArch };
+        var c2 = { x: D.x + Math.cos(destAngle) * (70 + tier * 18), y: yArch };
 
         chosenCurve = buildEndpoints(c1, c2, startAngle, destAngle);
         e.isArch = true;
@@ -559,26 +701,20 @@
       else if (botArchConfig[k] !== undefined) {
         var cfg = botArchConfig[k];
         var tier = cfg.globalTier;
-        var drop = 58 + tier * 38;
+        var drop = 95 + tier * 44; // Starts 95px below maxGlobalY, completely clearing self-loops
         var yArch = maxGlobalY + drop;
 
         var startAngle, destAngle;
         if (isBack) {
-          // Arriving from the right into D: distribute arrival angles in lower-right quadrant
-          if (cfg.destTotal === 1) {
-            destAngle = Math.PI * 0.16; // +28 deg
-          } else {
-            var step = 0.50 / Math.max(1, cfg.destTotal - 1);
-            destAngle = 0.22 + cfg.destIdx * step;
-          }
-          startAngle = Math.PI - 0.65 + cfg.destIdx * 0.18; // departing S towards bottom-left
+          destAngle = 0.22 + cfg.destIdx * 0.28;
+          startAngle = Math.PI * 0.80;
         } else {
-          destAngle = Math.PI - 0.44 - cfg.destIdx * 0.22;
-          startAngle = 0.44 + cfg.destIdx * 0.22;
+          destAngle = Math.PI * 0.78 - cfg.destIdx * 0.28;
+          startAngle = 0.22;
         }
 
-        var c1 = { x: S.x + Math.cos(startAngle) * (60 + tier * 15), y: yArch };
-        var c2 = { x: D.x + Math.cos(destAngle) * (60 + tier * 15), y: yArch };
+        var c1 = { x: S.x + Math.cos(startAngle) * (70 + tier * 18), y: yArch };
+        var c2 = { x: D.x + Math.cos(destAngle) * (70 + tier * 18), y: yArch };
 
         chosenCurve = buildEndpoints(c1, c2, startAngle, destAngle);
         e.isArch = true;
@@ -587,8 +723,8 @@
       // Special Mode: Bidirectional Pair
       // -----------------------------------------------------------------------
       else if (hasReverse) {
-        // Guarantee opposite symmetrical bowing
-        var b = 46;
+        // Guarantee opposite symmetrical bowing with generous separation
+        var b = 52;
         var c1 = { x: S.x + 0.33 * dx + nx * b, y: S.y + 0.33 * dy + ny * b };
         var c2 = { x: S.x + 0.67 * dx + nx * b, y: S.y + 0.67 * dy + ny * b };
         chosenCurve = buildEndpoints(c1, c2);
@@ -605,28 +741,28 @@
 
         if (isDownwardDiagonal) {
           // Bow downward-right
-          [28, 42].forEach(function (b) {
-            var c1 = { x: S.x + 0.33 * dx + 22, y: S.y + 0.33 * dy + ny * b };
-            var c2 = { x: S.x + 0.67 * dx + 22, y: S.y + 0.67 * dy + ny * b };
+          [32, 48].forEach(function (b) {
+            var c1 = { x: S.x + 0.33 * dx + 26, y: S.y + 0.33 * dy + ny * b };
+            var c2 = { x: S.x + 0.67 * dx + 26, y: S.y + 0.67 * dy + ny * b };
             candidateOptions.push(buildEndpoints(c1, c2));
           });
         } else if (isUpwardDiagonal) {
           // Bow upward-left
-          [-28, -42].forEach(function (b) {
-            var c1 = { x: S.x + 0.33 * dx - 22, y: S.y + 0.33 * dy + ny * b };
-            var c2 = { x: S.x + 0.67 * dx - 22, y: S.y + 0.67 * dy + ny * b };
+          [-32, -48].forEach(function (b) {
+            var c1 = { x: S.x + 0.33 * dx - 26, y: S.y + 0.33 * dy + ny * b };
+            var c2 = { x: S.x + 0.67 * dx - 26, y: S.y + 0.67 * dy + ny * b };
             candidateOptions.push(buildEndpoints(c1, c2));
           });
         } else if (Math.abs(dx) < 65) {
           // Vertical intra-column
-          [-54, 54, -78, 78].forEach(function (lateral) {
+          [-65, 65, -92, 92].forEach(function (lateral) {
             var c1 = { x: S.x + lateral, y: S.y + 0.30 * dy };
             var c2 = { x: S.x + lateral, y: S.y + 0.70 * dy };
             candidateOptions.push(buildEndpoints(c1, c2));
           });
         } else {
           // Standard forward transition
-          [0, 18, -18, 36, -36].forEach(function (b) {
+          [0, 22, -22, 44, -44].forEach(function (b) {
             var c1 = { x: S.x + 0.33 * dx + nx * b, y: S.y + 0.33 * dy + ny * b };
             var c2 = { x: S.x + 0.67 * dx + nx * b, y: S.y + 0.67 * dy + ny * b };
             candidateOptions.push(buildEndpoints(c1, c2));
@@ -668,8 +804,6 @@
       // Label Positioning:
       var midT = 0.5;
       if (e.isArch) {
-        // For arches spanning across intermediate columns, evaluate clearance at candidate t values
-        // to ensure the label does not sit on top of an intermediate node or self-loop
         var bestT = 0.5, bestArchClear = -Infinity;
         [0.28, 0.40, 0.50, 0.60, 0.72].forEach(function (candT) {
           var pt = cubicBezierPt(chosenCurve.p0, chosenCurve.c1, chosenCurve.c2, chosenCurve.p3, candT);
@@ -686,9 +820,9 @@
         });
         midT = bestT;
       } else if (S.col + 1 === D.col && dy > 40) {
-        midT = 0.70; // downward diagonal: place near destination
+        midT = 0.72; // downward diagonal: place near destination
       } else if (S.col + 1 === D.col && dy < -40) {
-        midT = 0.30; // upward diagonal: place near source
+        midT = 0.28; // upward diagonal: place near source
       }
 
       var mid = cubicBezierPt(chosenCurve.p0, chosenCurve.c1, chosenCurve.c2, chosenCurve.p3, midT);
@@ -696,7 +830,7 @@
       var tanLen = Math.hypot(tan.x, tan.y) || 1;
       var midNormal = { x: -tan.y / tanLen, y: tan.x / tanLen };
 
-      var labelOffset = e.isArch ? 18 : 15;
+      var labelOffset = e.isArch ? 20 : 16;
       e.labelPt = {
         x: mid.x + midNormal.x * labelOffset,
         y: mid.y + midNormal.y * labelOffset
@@ -753,16 +887,16 @@
     // Embedded standalone styles to guarantee 100% fidelity when exported or saved as SVG/PNG
     var styleEl = el('style', { type: 'text/css' }, defs);
     styleEl.textContent = [
-      '.edge { fill: none !important; stroke: #475569; stroke-width: 2.2px; stroke-linecap: round; stroke-linejoin: round; }',
-      '.edge.hot { stroke: #f59e0b !important; stroke-width: 3px !important; }',
+      '.edge { fill: none !important; stroke: #475569; stroke-width: 2.6px; stroke-linecap: round; stroke-linejoin: round; }',
+      '.edge.hot { stroke: #f59e0b !important; stroke-width: 3.6px !important; }',
       '.edge.dim { opacity: 0.25; }',
-      '.edge.start { fill: none !important; stroke: #7c3aed !important; stroke-width: 2.4px !important; }',
-      '.edge-badge-bg { fill: #ffffff !important; stroke: #cbd5e1 !important; stroke-width: 1.2px !important; }',
+      '.edge.start { fill: none !important; stroke: #7c3aed !important; stroke-width: 2.8px !important; }',
+      '.edge-badge-bg { fill: #ffffff !important; stroke: #cbd5e1 !important; stroke-width: 1.3px !important; }',
       '.edge-badge-bg.hot { fill: #fef3c7 !important; stroke: #f59e0b !important; }',
-      '.edge-badge-text { fill: #0f172a !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 11.5px !important; font-weight: 700 !important; text-anchor: middle !important; dominant-baseline: central !important; }',
+      '.edge-badge-text { fill: #0f172a !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 12px !important; font-weight: 700 !important; text-anchor: middle !important; dominant-baseline: central !important; }',
       '.edge-badge-text.hot { fill: #b45309 !important; }',
-      '.node-label { fill: #0f172a !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 14.5px !important; font-weight: 700 !important; text-anchor: middle !important; dominant-baseline: central !important; }',
-      '.start-badge-label { fill: #ffffff !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 11px !important; font-weight: 700 !important; text-anchor: middle !important; dominant-baseline: central !important; }'
+      '.node-label { fill: #0f172a !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 15.5px !important; font-weight: 700 !important; text-anchor: middle !important; dominant-baseline: central !important; }',
+      '.start-badge-label { fill: #ffffff !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 11.5px !important; font-weight: 700 !important; text-anchor: middle !important; dominant-baseline: central !important; }'
     ].join('\n');
 
     // Drop shadow filter for states
@@ -782,13 +916,13 @@
       var mk = el('marker', {
         id: id + m[0],
         viewBox: '0 0 10 10',
-        refX: 8.5,
+        refX: 8.8,
         refY: 5,
-        markerWidth: 7.5,
-        markerHeight: 7.5,
+        markerWidth: 9.5,
+        markerHeight: 9.5,
         orient: 'auto'
       }, defs);
-      el('path', { d: 'M1.5,1.5 L8.5,5 L1.5,8.5 z', fill: m[1] }, mk);
+      el('path', { d: 'M1.5,1.8 L8.8,5 L1.5,8.2 z', fill: m[1] }, mk);
     });
 
     // Viewport root group
@@ -824,7 +958,7 @@
         class: cls,
         fill: 'none',
         stroke: hot ? '#f59e0b' : '#475569',
-        'stroke-width': hot ? '3' : '2.2',
+        'stroke-width': hot ? '3.6' : '2.6',
         'stroke-linecap': 'round',
         'stroke-linejoin': 'round',
         opacity: dim ? '0.25' : '1',
@@ -837,7 +971,7 @@
       grow(c.p3.x, c.p3.y);
 
       var text = e.syms.join(', ');
-      var hw = Math.max(14, text.length * 4.6 + 8);
+      var hw = Math.max(15, text.length * 4.8 + 9);
       labels.push({
         x: e.labelPt.x,
         y: e.labelPt.y,
@@ -849,14 +983,14 @@
     });
 
     // Anti-collision relaxation for transition labels
-    for (var r = 0; r < 12; r++) {
+    for (var r = 0; r < 16; r++) {
       labels.forEach(function (L, li) {
         // Push label away from state circles
         dfa.states.forEach(function (s) {
           var c = pos[s];
           var dx = L.x - c.x, dy = L.y - c.y;
           var dd = Math.hypot(dx, dy) || 1;
-          var need = c.r + 20;
+          var need = c.r + 24;
           if (dd < need) {
             L.x += (dx / dd) * (need - dd);
             L.y += (dy / dd) * (need - dd);
@@ -866,8 +1000,8 @@
         // Push labels away from each other
         for (var lj = li + 1; lj < labels.length; lj++) {
           var M = labels[lj];
-          var ox = (L.hw + M.hw + 8) - Math.abs(L.x - M.x);
-          var oy = 26 - Math.abs(L.y - M.y);
+          var ox = (L.hw + M.hw + 10) - Math.abs(L.x - M.x);
+          var oy = 28 - Math.abs(L.y - M.y);
           if (ox > 0 && oy > 0) {
             var sgn = L.y <= M.y ? -1 : 1;
             L.y += sgn * (oy / 2);
@@ -883,24 +1017,24 @@
       var w = L.hw * 2;
       el('rect', {
         x: L.x - w / 2,
-        y: L.y - 11,
+        y: L.y - 12,
         width: w,
-        height: 22,
-        rx: 6,
-        ry: 6,
+        height: 24,
+        rx: 7,
+        ry: 7,
         fill: L.hot ? '#fef3c7' : '#ffffff',
         stroke: L.hot ? '#f59e0b' : '#cbd5e1',
-        'stroke-width': '1.2',
+        'stroke-width': '1.3',
         class: 'edge-badge-bg' + (L.hot ? ' hot' : ''),
         filter: 'url(#' + id + 'bshadow)'
       }, g);
 
       var t = el('text', {
         x: L.x,
-        y: L.y + 4.2,
+        y: L.y + 4.5,
         fill: L.hot ? '#b45309' : '#0f172a',
         'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-        'font-size': '11.5px',
+        'font-size': '12px',
         'font-weight': '700',
         'text-anchor': 'middle',
         'dominant-baseline': 'central',
@@ -908,8 +1042,8 @@
       }, g);
       t.textContent = L.text;
 
-      grow(L.x - w / 2 - 8, L.y - 14);
-      grow(L.x + w / 2 + 8, L.y + 14);
+      grow(L.x - w / 2 - 10, L.y - 16);
+      grow(L.x + w / 2 + 10, L.y + 16);
     });
 
     // Render State Nodes
@@ -929,7 +1063,7 @@
           : ci !== undefined
             ? STROKES[ci]
             : defaultStroke;
-      var sw = isFinal ? 2.6 : (active.has(s) ? 3.5 : 2.2);
+      var sw = isFinal ? 2.8 : (active.has(s) ? 3.8 : 2.5);
 
       // Outer state circle
       el('circle', {
@@ -942,8 +1076,8 @@
       // Inner circle for final accepting states (double ring)
       if (isFinal) {
         el('circle', {
-          cx: p.x, cy: p.y, r: p.r - 5.5,
-          fill: 'none', stroke: '#10b981', 'stroke-width': 1.8,
+          cx: p.x, cy: p.y, r: p.r - 6,
+          fill: 'none', stroke: '#10b981', 'stroke-width': 2.0,
           'stroke-dasharray': faded.has(s) ? '5 4' : 'none'
         }, g);
       }
@@ -951,10 +1085,10 @@
       // State label
       var label = el('text', {
         x: p.x,
-        y: p.y + 4.8,
+        y: p.y + 5.0,
         fill: '#0f172a',
         'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-        'font-size': '14.5px',
+        'font-size': '15.5px',
         'font-weight': '700',
         'text-anchor': 'middle',
         'dominant-baseline': 'central',
@@ -965,10 +1099,10 @@
       // Start state incoming arrow and badge
       if (s === dfa.start) {
         el('line', {
-          x1: p.x - p.r - 52, y1: p.y,
+          x1: p.x - p.r - 56, y1: p.y,
           x2: p.x - p.r - 3, y2: p.y,
           stroke: '#7c3aed',
-          'stroke-width': '2.4',
+          'stroke-width': '2.8',
           fill: 'none',
           class: 'edge start',
           'marker-end': 'url(#' + id + 'n)'
@@ -976,16 +1110,16 @@
 
         var badgeG = el('g', { class: 'start-badge' }, g);
         el('rect', {
-          x: p.x - p.r - 68, y: p.y - 11,
-          width: 44, height: 22, rx: 11, ry: 11,
+          x: p.x - p.r - 74, y: p.y - 12,
+          width: 48, height: 24, rx: 12, ry: 12,
           fill: '#7c3aed'
         }, badgeG);
 
         var st = el('text', {
-          x: p.x - p.r - 46, y: p.y + 4,
+          x: p.x - p.r - 50, y: p.y + 4.5,
           fill: '#ffffff',
           'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-          'font-size': '11px',
+          'font-size': '11.5px',
           'font-weight': '700',
           'text-anchor': 'middle',
           'dominant-baseline': 'central',
@@ -994,13 +1128,13 @@
         st.textContent = 'Start';
       }
 
-      grow(p.x - p.r - 12, p.y - p.r - 12);
-      grow(p.x + p.r + 12, p.y + p.r + 12);
-      if (s === dfa.start) grow(p.x - p.r - 80, p.y - 24);
+      grow(p.x - p.r - 14, p.y - p.r - 14);
+      grow(p.x + p.r + 14, p.y + p.r + 14);
+      if (s === dfa.start) grow(p.x - p.r - 85, p.y - 26);
     });
 
     // Auto-calculate bounded diagram viewBox with comfortable padding
-    var pad = 65;
+    var pad = 42;
     var initialVB = {
       x: minX - pad,
       y: minY - pad,

@@ -1262,22 +1262,22 @@ svg:not([class*="graph"]):not([class*="dfa"]):not(.hero-automata-svg):not(.empty
 /* Split Viewports: Left Canvas + Right Table */
 .studio-viewports {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1.8fr) minmax(240px, 0.6fr);
+  gap: 14px;
   align-items: stretch;
-  margin-top: 8px;
-  min-height: 440px;
-  max-height: 640px;
-  height: 490px;
+  margin-top: 10px;
+  min-height: 560px;
+  height: 620px;
+  max-height: 780px;
   overflow: hidden;
 }
 
 .viewport-canvas-box {
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 14px;
   background: #ffffff;
-  min-height: 420px;
-  max-height: 640px;
+  min-height: 520px;
+  max-height: 780px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -1285,6 +1285,7 @@ svg:not([class*="graph"]):not([class*="dfa"]):not(.hero-automata-svg):not(.empty
   justify-content: space-between;
   overflow: hidden;
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 
 .diagram-stage {
