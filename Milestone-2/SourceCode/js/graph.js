@@ -6,10 +6,10 @@
  * 1. Intelligent Layered Hierarchy Layout (Sugiyama-style) with longest-path leveling.
  * 2. Multi-pass alternating barycenter crossing minimization (reduces edge intersections).
  * 3. Proportional, dynamic column and row spacing scaled to graph complexity.
- * 4. Dedicated Top & Bottom Arch Corridors for multi-column forward and backward transitions.
+ * 4. Dedicated Concentric Top & Bottom Arch Corridors for multi-column and back transitions.
  * 5. Strictly separated bidirectional edges (symmetrical opposite curvatures with zero overlap).
  * 6. Non-intersecting self-loops oriented in the direction of maximum angular clearance.
- * 7. Exact node-boundary intersection mathematics (arrowheads stop cleanly at circle perimeters).
+ * 7. Multi-edge destination port distribution (prevents arrowhead and path overlapping).
  * 8. High-contrast pill badge labels with multi-pass collision relaxation and offset positioning.
  * 9. Responsive SVG canvas with dynamic viewBox, mouse wheel zoom, drag-to-pan, and toolbar.
  */
@@ -109,8 +109,6 @@
   /**
    * Layout DFA states in a hierarchical layered structure:
    * - BFS rank from start state establishes primary horizontal layers.
-   * - Dead/trap states are assigned to an isolated bottom rank.
-   * - Unreachable states are assigned to an auxiliary end-tier.
    * - Longest-path leveling guarantees forward progress.
    * - Alternating 8-pass barycentric crossing minimization reduces line clutter.
    * - Dynamic horizontal/vertical spacing ensures generous room for states and labels.
@@ -136,7 +134,7 @@
       if (depth[s] !== undefined) maxDepth = Math.max(maxDepth, depth[s]);
     });
 
-    // 2. Identify Dead/Trap states (non-final states whose transitions all loop to themselves)
+    // 2. Identify Dead/Trap states
     var isDead = {};
     dfa.states.forEach(function (s) {
       if (s === dfa.start || dfa.finals.indexOf(s) !== -1) {
@@ -161,7 +159,7 @@
       }
     });
 
-    // 4. Level forward edges (longest path to prevent collisions across columns)
+    // 4. Level forward edges
     for (var pass = 0; pass < 4; pass++) {
       dfa.states.forEach(function (s) {
         if (depth[s] === undefined || isDead[s]) return;
@@ -239,16 +237,15 @@
     var maxInCol = Math.max.apply(null, cols.map(function (c) { return c.length; }));
 
     // Spacious column width and row height
-    var colW = Math.max(210, Math.min(270, 195 + Math.min(N, 12) * 5));
-    var rowH = Math.max(130, Math.min(175, 115 + Math.min(maxInCol, 6) * 8));
+    var colW = Math.max(220, Math.min(280, 200 + Math.min(N, 12) * 5));
+    var rowH = Math.max(135, Math.min(180, 120 + Math.min(maxInCol, 6) * 8));
 
     var pos = {};
-    var baseY = 200;
+    var baseY = 210;
 
     cols.forEach(function (col, ci) {
       var m = col.length;
       col.forEach(function (s, ri) {
-        // Vertical centering per column
         var yPos = baseY + (ri - (m - 1) / 2) * rowH;
         pos[s] = {
           x: 130 + ci * colW,
@@ -292,7 +289,8 @@
    * Routes all transitions with:
    * - Zero edge-through-circle intersections.
    * - Strict symmetrical separation for bidirectional pairs.
-   * - Multi-column transitions routed along high and low arch corridors.
+   * - Multi-column and back transitions routed along concentric top & bottom arch corridors.
+   * - Multi-edge destination port distribution (prevents arrowhead overlapping).
    * - Self-loops oriented toward maximum free angular clearance.
    * - Arrowheads terminating cleanly on destination perimeters.
    */
@@ -313,8 +311,6 @@
       });
     });
 
-    var routed = [];
-
     // Global diagram bounds for corridor routing
     var minGlobalY = Infinity, maxGlobalY = -Infinity;
     dfa.states.forEach(function (s) {
@@ -323,9 +319,103 @@
       maxGlobalY = Math.max(maxGlobalY, p.y + p.r);
     });
 
-    // Track corridor tier assignments to prevent parallel arch overlap
-    var topCorridorCount = 0;
-    var bottomCorridorCount = 0;
+    var midGlobalY = (minGlobalY + maxGlobalY) / 2;
+
+    // -------------------------------------------------------------------------
+    // Phase 1: Classify multi-column corridor edges (colSpan >= 2)
+    // -------------------------------------------------------------------------
+    var topArches = [];
+    var botArches = [];
+
+    order.forEach(function (k) {
+      var e = edges[k];
+      if (e.from === e.to) return; // self-loop
+      var S = pos[e.from], D = pos[e.to];
+      var colSpan = Math.abs((S.col || 0) - (D.col || 0));
+
+      // ONLY multi-column jumps spanning across 1 or more intermediate columns (colSpan >= 2)
+      // take an outer arch corridor.
+      // Edges with colSpan <= 1 use direct, obstacle-avoiding curves between adjacent columns.
+      if (colSpan >= 2) {
+        var isBack = S.x > D.x || S.col > D.col;
+        var useTop;
+        if (D.y < midGlobalY - 10) useTop = true;
+        else if (D.y > midGlobalY + 10) useTop = false;
+        else if (S.y < midGlobalY - 10) useTop = true;
+        else if (S.y > midGlobalY + 10) useTop = false;
+        else useTop = (Math.min(S.y, D.y) <= midGlobalY);
+
+        if (useTop) {
+          topArches.push({ k: k, span: Math.abs(S.x - D.x), from: e.from, to: e.to, isBack: isBack });
+        } else {
+          botArches.push({ k: k, span: Math.abs(S.x - D.x), from: e.from, to: e.to, isBack: isBack });
+        }
+      }
+    });
+
+    // Group arches by destination state so multiple arches arriving at the same state
+    // nest concentrically (shorter span inside, longer span outside) and receive distinct
+    // non-overlapping arrival ports!
+    var topArchesByDest = {}, botArchesByDest = {};
+    topArches.forEach(function (item) {
+      topArchesByDest[item.to] = topArchesByDest[item.to] || [];
+      topArchesByDest[item.to].push(item);
+    });
+    botArches.forEach(function (item) {
+      botArchesByDest[item.to] = botArchesByDest[item.to] || [];
+      botArchesByDest[item.to].push(item);
+    });
+
+    // Sort by span ascending: shorter span = lower lift, longer span = higher lift
+    Object.keys(topArchesByDest).forEach(function (to) {
+      topArchesByDest[to].sort(function (a, b) { return a.span - b.span; });
+    });
+    Object.keys(botArchesByDest).forEach(function (to) {
+      botArchesByDest[to].sort(function (a, b) { return a.span - b.span; });
+    });
+
+    topArches.sort(function (a, b) { return a.span - b.span; });
+    botArches.sort(function (a, b) { return a.span - b.span; });
+
+    var globalTopMap = {}, globalBotMap = {};
+    topArches.forEach(function (item, idx) { globalTopMap[item.k] = idx; });
+    botArches.forEach(function (item, idx) { globalBotMap[item.k] = idx; });
+
+    var topArchConfig = {}, botArchConfig = {};
+    Object.keys(topArchesByDest).forEach(function (to) {
+      var list = topArchesByDest[to];
+      list.forEach(function (item, destIdx) {
+        topArchConfig[item.k] = {
+          destIdx: destIdx,
+          destTotal: list.length,
+          globalTier: globalTopMap[item.k]
+        };
+      });
+    });
+
+    Object.keys(botArchesByDest).forEach(function (to) {
+      var list = botArchesByDest[to];
+      list.forEach(function (item, destIdx) {
+        botArchConfig[item.k] = {
+          destIdx: destIdx,
+          destTotal: list.length,
+          globalTier: globalBotMap[item.k]
+        };
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // Phase 2: Compute incoming edge counts per node to distribute arrival ports
+    // -------------------------------------------------------------------------
+    var incomingByDest = {};
+    order.forEach(function (k) {
+      var e = edges[k];
+      if (e.from === e.to) return;
+      incomingByDest[e.to] = incomingByDest[e.to] || [];
+      incomingByDest[e.to].push(e);
+    });
+
+    var routed = [];
 
     order.forEach(function (k) {
       var e = edges[k];
@@ -398,147 +488,218 @@
       // B. Inter-State Edge Routing
       // -----------------------------------------------------------------------
       var hasReverse = !!edges[e.to + '\u0000' + e.from];
-      var isForward = S.x <= D.x;
+      var isBack = S.x > D.x || S.col > D.col;
+      var colSpan = Math.abs((S.col || 0) - (D.col || 0));
       var dx = D.x - S.x, dy = D.y - S.y;
       var dist = Math.hypot(dx, dy) || 1;
       var nx = -dy / dist, ny = dx / dist; // Unit normal vector pointing to the left of the path
 
-      function buildEndpoints(c1, c2) {
-        var tsX = c1.x - S.x, tsY = c1.y - S.y, tsD = Math.hypot(tsX, tsY) || 1;
-        var tdX = D.x - c2.x, tdY = D.y - c2.y, tdD = Math.hypot(tdX, tdY) || 1;
-        return {
-          p0: { x: S.x + (tsX / tsD) * S.r, y: S.y + (tsY / tsD) * S.r },
-          c1: c1,
-          c2: c2,
-          p3: { x: D.x - (tdX / tdD) * (D.r + 3.5), y: D.y - (tdY / tdD) * (D.r + 3.5) }
-        };
-      }
-
-      var candidateOptions = [];
-
-      // Case 1: Bidirectional transitions between two states
-      // One bows strictly to the left/top, the other strictly to the right/bottom
-      if (hasReverse) {
-        var b1 = 44, b2 = 64, b3 = 84;
-        [b1, b2, b3].forEach(function (b) {
-          var c1 = { x: S.x + 0.33 * dx + nx * b, y: S.y + 0.33 * dy + ny * b };
-          var c2 = { x: S.x + 0.67 * dx + nx * b, y: S.y + 0.67 * dy + ny * b };
-          var opt = buildEndpoints(c1, c2);
-          opt.penalty = b;
-          candidateOptions.push(opt);
-        });
-      } else {
-        // Case 2: Unidirectional transition (try straight and gentle bends)
-        [0, 18, -18, 36, -36, 52, -52].forEach(function (b) {
-          var c1 = { x: S.x + 0.33 * dx + nx * b, y: S.y + 0.33 * dy + ny * b };
-          var c2 = { x: S.x + 0.67 * dx + nx * b, y: S.y + 0.67 * dy + ny * b };
-          var opt = buildEndpoints(c1, c2);
-          opt.penalty = Math.abs(b);
-          candidateOptions.push(opt);
-        });
-      }
-
-      // Case 3: Long-Distance Spans & Back-Edges (Multi-Column)
-      // Route via Top Arch Corridor or Bottom Arch Corridor
-      var colSpan = Math.abs((S.col || 0) - (D.col || 0));
-      if (colSpan >= 2 || !isForward || Math.abs(dx) >= 160) {
-        var topTier = (topCorridorCount % 4);
-        var botTier = (bottomCorridorCount % 4);
-
-        // Top Corridor Arch
-        [45 + topTier * 28, 80 + topTier * 28].forEach(function (lift) {
-          var yArch = minGlobalY - lift;
-          var c1 = { x: S.x + (D.x - S.x) * 0.25, y: yArch };
-          var c2 = { x: S.x + (D.x - S.x) * 0.75, y: yArch };
-          var opt = buildEndpoints(c1, c2);
-          opt.penalty = 120 + lift;
-          opt.isTopArch = true;
-          candidateOptions.push(opt);
-        });
-
-        // Bottom Corridor Arch
-        [45 + botTier * 28, 80 + botTier * 28].forEach(function (drop) {
-          var yArch = maxGlobalY + drop;
-          var c1 = { x: S.x + (D.x - S.x) * 0.25, y: yArch };
-          var c2 = { x: S.x + (D.x - S.x) * 0.75, y: yArch };
-          var opt = buildEndpoints(c1, c2);
-          opt.penalty = 120 + drop;
-          opt.isBottomArch = true;
-          candidateOptions.push(opt);
-        });
-      }
-
-      // Case 4: Vertical Intra-Column Transitions
-      if (Math.abs(dx) < 65) {
-        [-52, 52, -78, 78].forEach(function (lateral) {
-          var c1 = { x: S.x + lateral, y: S.y + 0.30 * dy };
-          var c2 = { x: S.x + lateral, y: S.y + 0.70 * dy };
-          var opt = buildEndpoints(c1, c2);
-          opt.penalty = Math.abs(lateral);
-          candidateOptions.push(opt);
-        });
-      }
-
-      // -----------------------------------------------------------------------
-      // Evaluate Candidate Curves and Select Highest Scoring Clearance
-      // -----------------------------------------------------------------------
-      var bestOption = null;
-      var maxClearanceScore = -Infinity;
-
-      for (var oi = 0; oi < candidateOptions.length; oi++) {
-        var opt = candidateOptions[oi];
-        var minClear = Infinity;
-
-        for (var si = 0; si < dfa.states.length; si++) {
-          var os = dfa.states[si];
-          if (os === e.from || os === e.to) continue;
-          var O = pos[os];
-          var d = minDistanceToCurve(opt.p0, opt.c1, opt.c2, opt.p3, O.x, O.y) - O.r;
-          if (d < minClear) minClear = d;
+      function buildEndpoints(c1, c2, customStartAngle, customDestAngle) {
+        var p0;
+        if (customStartAngle !== undefined) {
+          p0 = {
+            x: S.x + Math.cos(customStartAngle) * S.r,
+            y: S.y + Math.sin(customStartAngle) * S.r
+          };
+        } else {
+          var tsX = c1.x - S.x, tsY = c1.y - S.y, tsD = Math.hypot(tsX, tsY) || 1;
+          p0 = { x: S.x + (tsX / tsD) * S.r, y: S.y + (tsY / tsD) * S.r };
         }
 
-        // Strictly reject any curve that penetrates another state circle (minClear < 16)
-        if (minClear < 16) continue;
-
-        // Discard degenerate straight curves that retrace
-        var isDegenX = Math.abs(opt.p0.x - opt.c1.x) < 0.5 && Math.abs(opt.c1.x - opt.c2.x) < 0.5 && Math.abs(opt.c2.x - opt.p3.x) < 0.5;
-        var isDegenY = Math.abs(opt.p0.y - opt.c1.y) < 0.5 && Math.abs(opt.c1.y - opt.c2.y) < 0.5 && Math.abs(opt.c2.y - opt.p3.y) < 0.5;
-        if ((isDegenX || isDegenY) && dist > 35) continue;
-
-        var penalty = opt.penalty || 0;
-        var score = minClear >= 28
-          ? 1000 - penalty + Math.min(minClear, 55)
-          : minClear * 10 - penalty;
-
-        if (score > maxClearanceScore) {
-          maxClearanceScore = score;
-          bestOption = opt;
+        var p3;
+        if (customDestAngle !== undefined) {
+          p3 = {
+            x: D.x + Math.cos(customDestAngle) * (D.r + 3.5),
+            y: D.y + Math.sin(customDestAngle) * (D.r + 3.5)
+          };
+        } else {
+          var tdX = D.x - c2.x, tdY = D.y - c2.y, tdD = Math.hypot(tdX, tdY) || 1;
+          p3 = { x: D.x - (tdX / tdD) * (D.r + 3.5), y: D.y - (tdY / tdD) * (D.r + 3.5) };
         }
+
+        return { p0: p0, p1: c1, p2: c2, c1: c1, c2: c2, p3: p3 };
       }
 
-      // Fallback if all standard candidates were restricted: use wide corridor arch
-      if (!bestOption) {
-        var yArchFallback = minGlobalY - (50 + (topCorridorCount % 3) * 35);
-        var fc1 = { x: S.x + (D.x - S.x) * 0.25, y: yArchFallback };
-        var fc2 = { x: S.x + (D.x - S.x) * 0.75, y: yArchFallback };
-        bestOption = buildEndpoints(fc1, fc2);
-        bestOption.isTopArch = true;
+      var chosenCurve = null;
+
+      // -----------------------------------------------------------------------
+      // Special Mode: Top Arch Corridor (Concentric multi-column routing)
+      // -----------------------------------------------------------------------
+      if (topArchConfig[k] !== undefined) {
+        var cfg = topArchConfig[k];
+        var tier = cfg.globalTier;
+        var lift = 58 + tier * 38;
+        var yArch = minGlobalY - lift;
+
+        var startAngle, destAngle;
+        if (isBack) {
+          // Arriving from the right into D: distribute arrival angles in upper-right quadrant
+          if (cfg.destTotal === 1) {
+            destAngle = -Math.PI * 0.16; // -28 deg
+          } else {
+            var step = 0.50 / Math.max(1, cfg.destTotal - 1);
+            destAngle = -0.22 - cfg.destIdx * step;
+          }
+          startAngle = -Math.PI + 0.65 - cfg.destIdx * 0.18; // departing S towards top-left
+        } else {
+          // Forward leap from left to right: distribute in upper-left quadrant
+          destAngle = -Math.PI + 0.44 + cfg.destIdx * 0.22;
+          startAngle = -0.44 - cfg.destIdx * 0.22;
+        }
+
+        var c1 = { x: S.x + Math.cos(startAngle) * (60 + tier * 15), y: yArch };
+        var c2 = { x: D.x + Math.cos(destAngle) * (60 + tier * 15), y: yArch };
+
+        chosenCurve = buildEndpoints(c1, c2, startAngle, destAngle);
+        e.isArch = true;
+      }
+      // -----------------------------------------------------------------------
+      // Special Mode: Bottom Arch Corridor (Concentric multi-column routing)
+      // -----------------------------------------------------------------------
+      else if (botArchConfig[k] !== undefined) {
+        var cfg = botArchConfig[k];
+        var tier = cfg.globalTier;
+        var drop = 58 + tier * 38;
+        var yArch = maxGlobalY + drop;
+
+        var startAngle, destAngle;
+        if (isBack) {
+          // Arriving from the right into D: distribute arrival angles in lower-right quadrant
+          if (cfg.destTotal === 1) {
+            destAngle = Math.PI * 0.16; // +28 deg
+          } else {
+            var step = 0.50 / Math.max(1, cfg.destTotal - 1);
+            destAngle = 0.22 + cfg.destIdx * step;
+          }
+          startAngle = Math.PI - 0.65 + cfg.destIdx * 0.18; // departing S towards bottom-left
+        } else {
+          destAngle = Math.PI - 0.44 - cfg.destIdx * 0.22;
+          startAngle = 0.44 + cfg.destIdx * 0.22;
+        }
+
+        var c1 = { x: S.x + Math.cos(startAngle) * (60 + tier * 15), y: yArch };
+        var c2 = { x: D.x + Math.cos(destAngle) * (60 + tier * 15), y: yArch };
+
+        chosenCurve = buildEndpoints(c1, c2, startAngle, destAngle);
+        e.isArch = true;
+      }
+      // -----------------------------------------------------------------------
+      // Special Mode: Bidirectional Pair
+      // -----------------------------------------------------------------------
+      else if (hasReverse) {
+        // Guarantee opposite symmetrical bowing
+        var b = 46;
+        var c1 = { x: S.x + 0.33 * dx + nx * b, y: S.y + 0.33 * dy + ny * b };
+        var c2 = { x: S.x + 0.67 * dx + nx * b, y: S.y + 0.67 * dy + ny * b };
+        chosenCurve = buildEndpoints(c1, c2);
+      }
+      // -----------------------------------------------------------------------
+      // General Mode: Crossing-aware Forward & Vertical transitions
+      // -----------------------------------------------------------------------
+      else {
+        var candidateOptions = [];
+
+        // Check if this is a diagonal cross-edge between adjacent columns
+        var isDownwardDiagonal = (S.col + 1 === D.col && dy > 40);
+        var isUpwardDiagonal = (S.col + 1 === D.col && dy < -40);
+
+        if (isDownwardDiagonal) {
+          // Bow downward-right
+          [28, 42].forEach(function (b) {
+            var c1 = { x: S.x + 0.33 * dx + 22, y: S.y + 0.33 * dy + ny * b };
+            var c2 = { x: S.x + 0.67 * dx + 22, y: S.y + 0.67 * dy + ny * b };
+            candidateOptions.push(buildEndpoints(c1, c2));
+          });
+        } else if (isUpwardDiagonal) {
+          // Bow upward-left
+          [-28, -42].forEach(function (b) {
+            var c1 = { x: S.x + 0.33 * dx - 22, y: S.y + 0.33 * dy + ny * b };
+            var c2 = { x: S.x + 0.67 * dx - 22, y: S.y + 0.67 * dy + ny * b };
+            candidateOptions.push(buildEndpoints(c1, c2));
+          });
+        } else if (Math.abs(dx) < 65) {
+          // Vertical intra-column
+          [-54, 54, -78, 78].forEach(function (lateral) {
+            var c1 = { x: S.x + lateral, y: S.y + 0.30 * dy };
+            var c2 = { x: S.x + lateral, y: S.y + 0.70 * dy };
+            candidateOptions.push(buildEndpoints(c1, c2));
+          });
+        } else {
+          // Standard forward transition
+          [0, 18, -18, 36, -36].forEach(function (b) {
+            var c1 = { x: S.x + 0.33 * dx + nx * b, y: S.y + 0.33 * dy + ny * b };
+            var c2 = { x: S.x + 0.67 * dx + nx * b, y: S.y + 0.67 * dy + ny * b };
+            candidateOptions.push(buildEndpoints(c1, c2));
+          });
+        }
+
+        // Evaluate candidate curves against obstacle nodes
+        var bestOption = null;
+        var maxClearanceScore = -Infinity;
+
+        for (var oi = 0; oi < candidateOptions.length; oi++) {
+          var opt = candidateOptions[oi];
+          var minClear = Infinity;
+
+          for (var si = 0; si < dfa.states.length; si++) {
+            var os = dfa.states[si];
+            if (os === e.from || os === e.to) continue;
+            var O = pos[os];
+            var d = minDistanceToCurve(opt.p0, opt.c1, opt.c2, opt.p3, O.x, O.y) - O.r;
+            if (d < minClear) minClear = d;
+          }
+
+          if (minClear < 16) continue;
+
+          var score = minClear >= 28 ? 1000 + Math.min(minClear, 50) : minClear * 10;
+          if (score > maxClearanceScore) {
+            maxClearanceScore = score;
+            bestOption = opt;
+          }
+        }
+
+        var defC1 = { x: S.x + 0.33 * dx, y: S.y + 0.33 * dy };
+        var defC2 = { x: S.x + 0.67 * dx, y: S.y + 0.67 * dy };
+        chosenCurve = bestOption || candidateOptions[0] || buildEndpoints(defC1, defC2);
       }
 
-      if (bestOption.isTopArch) topCorridorCount++;
-      if (bestOption.isBottomArch) bottomCorridorCount++;
+      e.curve = chosenCurve;
 
-      e.curve = { p0: bestOption.p0, p1: bestOption.c1, p2: bestOption.c2, p3: bestOption.p3 };
+      // Label Positioning:
+      var midT = 0.5;
+      if (e.isArch) {
+        // For arches spanning across intermediate columns, evaluate clearance at candidate t values
+        // to ensure the label does not sit on top of an intermediate node or self-loop
+        var bestT = 0.5, bestArchClear = -Infinity;
+        [0.28, 0.40, 0.50, 0.60, 0.72].forEach(function (candT) {
+          var pt = cubicBezierPt(chosenCurve.p0, chosenCurve.c1, chosenCurve.c2, chosenCurve.p3, candT);
+          var minD = Infinity;
+          dfa.states.forEach(function (s) {
+            var O = pos[s];
+            var d = Math.hypot(pt.x - O.x, pt.y - O.y);
+            if (d < minD) minD = d;
+          });
+          if (minD > bestArchClear) {
+            bestArchClear = minD;
+            bestT = candT;
+          }
+        });
+        midT = bestT;
+      } else if (S.col + 1 === D.col && dy > 40) {
+        midT = 0.70; // downward diagonal: place near destination
+      } else if (S.col + 1 === D.col && dy < -40) {
+        midT = 0.30; // upward diagonal: place near source
+      }
 
-      // Calculate label anchor point at curve midpoint with normal offset
-      var mid = cubicBezierPt(bestOption.p0, bestOption.c1, bestOption.c2, bestOption.p3, 0.5);
-      var tan = cubicBezierTangent(bestOption.p0, bestOption.c1, bestOption.c2, bestOption.p3, 0.5);
+      var mid = cubicBezierPt(chosenCurve.p0, chosenCurve.c1, chosenCurve.c2, chosenCurve.p3, midT);
+      var tan = cubicBezierTangent(chosenCurve.p0, chosenCurve.c1, chosenCurve.c2, chosenCurve.p3, midT);
       var tanLen = Math.hypot(tan.x, tan.y) || 1;
       var midNormal = { x: -tan.y / tanLen, y: tan.x / tanLen };
 
+      var labelOffset = e.isArch ? 18 : 15;
       e.labelPt = {
-        x: mid.x + midNormal.x * 16,
-        y: mid.y + midNormal.y * 16
+        x: mid.x + midNormal.x * labelOffset,
+        y: mid.y + midNormal.y * labelOffset
       };
       e.isSelf = false;
       routed.push(e);
@@ -667,7 +828,7 @@
     });
 
     // Anti-collision relaxation for transition labels
-    for (var r = 0; r < 10; r++) {
+    for (var r = 0; r < 12; r++) {
       labels.forEach(function (L, li) {
         // Push label away from state circles
         dfa.states.forEach(function (s) {
@@ -684,8 +845,8 @@
         // Push labels away from each other
         for (var lj = li + 1; lj < labels.length; lj++) {
           var M = labels[lj];
-          var ox = (L.hw + M.hw + 6) - Math.abs(L.x - M.x);
-          var oy = 24 - Math.abs(L.y - M.y);
+          var ox = (L.hw + M.hw + 8) - Math.abs(L.x - M.x);
+          var oy = 26 - Math.abs(L.y - M.y);
           if (ox > 0 && oy > 0) {
             var sgn = L.y <= M.y ? -1 : 1;
             L.y += sgn * (oy / 2);
