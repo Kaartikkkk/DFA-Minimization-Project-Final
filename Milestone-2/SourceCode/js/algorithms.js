@@ -24,6 +24,7 @@
   'use strict';
   var isNode = typeof module !== 'undefined' && module.exports;
   var HK = isNode ? require('./hopcroft-karp.js') : (typeof root !== 'undefined' ? root.HopcroftKarp : (typeof globalThis !== 'undefined' ? globalThis.HopcroftKarp : null));
+  var Hopcroft = isNode ? require('./hopcroft.js') : (typeof root !== 'undefined' ? root.Hopcroft : (typeof globalThis !== 'undefined' ? globalThis.Hopcroft : null));
 
   /* =====================================================================
      Helpers
@@ -558,10 +559,20 @@
     var reduced = restrictDFA(full, reach.reachable);
     var res = { ok: true, validation: v, input: input, full: full, dead: completed.dead,
                 reach: reach, reduced: reduced, method: method };
-    if (method !== 'pr') res.tf = tableFilling(reduced);
-    if (method !== 'tf') res.pr = partitionRefinement(reduced);
-    res.classes = sortClasses((res.tf || res.pr).classes, reduced.states);
+
+    // Run requested minimization algorithms
+    if (Hopcroft && (method === 'hopcroft' || method === 'both' || method === 'all' || !method)) {
+      res.hopcroft = Hopcroft.minimize(reduced);
+    }
+    if (method !== 'pr' && method !== 'hopcroft') res.tf = tableFilling(reduced);
+    if (method !== 'tf' && method !== 'hopcroft') res.pr = partitionRefinement(reduced);
+
+    var chosen = res.hopcroft || res.tf || res.pr;
+    res.classes = sortClasses(chosen.classes, reduced.states);
     if (res.tf && res.pr) res.methodsAgree = sameClasses(res.tf.classes, res.pr.classes);
+    if (res.hopcroft && res.tf) res.methodsAgree = sameClasses(res.hopcroft.classes, res.tf.classes);
+    if (res.hopcroft && res.pr && res.methodsAgree === undefined) res.methodsAgree = sameClasses(res.hopcroft.classes, res.pr.classes);
+
     var built = buildMinimized(reduced, res.classes);
     res.min = built.dfa;
     res.nameOf = built.nameOf;
@@ -650,6 +661,7 @@
   var api = { parseList: parseList, tokenize: tokenize, cloneDFA: cloneDFA, validateDFA: validateDFA,
               completeWithDeadState: completeWithDeadState, findReachable: findReachable,
               restrictDFA: restrictDFA, tableFilling: tableFilling, partitionRefinement: partitionRefinement,
+              hopcroft: Hopcroft ? Hopcroft.minimize : null,
               buildMinimized: buildMinimized, className: className, runString: runString,
               checkEquivalence: checkEquivalence, bruteForceCompare: bruteForceCompare,
               shortestDistinguishingLength: shortestDistinguishingLength,

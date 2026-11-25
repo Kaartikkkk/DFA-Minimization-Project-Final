@@ -30,6 +30,32 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
+  var isNode = typeof module !== 'undefined' && module.exports;
+  var RegexParser = isNode ? require('./regex-parser.js') : (typeof root !== 'undefined' && root.RegexParser ? root.RegexParser : (typeof globalThis !== 'undefined' ? globalThis.RegexParser : null));
+  var Thompson = isNode ? require('./thompson.js') : (typeof root !== 'undefined' && root.ThompsonConstruction ? root.ThompsonConstruction : (typeof globalThis !== 'undefined' ? globalThis.ThompsonConstruction : null));
+  var Subset = isNode ? require('./subset-construction.js') : (typeof root !== 'undefined' && root.SubsetConstruction ? root.SubsetConstruction : (typeof globalThis !== 'undefined' ? globalThis.SubsetConstruction : null));
+
+  function getRegexParser() {
+    if (RegexParser) return RegexParser;
+    if (typeof root !== 'undefined' && root.RegexParser) return root.RegexParser;
+    if (typeof globalThis !== 'undefined' && globalThis.RegexParser) return globalThis.RegexParser;
+    return null;
+  }
+
+  function getThompson() {
+    if (Thompson) return Thompson;
+    if (typeof root !== 'undefined' && root.ThompsonConstruction) return root.ThompsonConstruction;
+    if (typeof globalThis !== 'undefined' && globalThis.ThompsonConstruction) return globalThis.ThompsonConstruction;
+    return null;
+  }
+
+  function getSubset() {
+    if (Subset) return Subset;
+    if (typeof root !== 'undefined' && root.SubsetConstruction) return root.SubsetConstruction;
+    if (typeof globalThis !== 'undefined' && globalThis.SubsetConstruction) return globalThis.SubsetConstruction;
+    return null;
+  }
+
   /* =========================================================================
      1. Alphabet Extraction & Token Normalization
      ========================================================================= */
@@ -75,14 +101,15 @@
     }
 
     // Check for clear tokens of a and b (e.g. 'a's and 'b's, patterns over a and b)
-    var mAB = text.match(/(?:starts?|ends?|contains?|having|with|pattern|substring)\s+['"`]?([ab]+)\b/i);
     var hasABPattern = false;
+    var mAB = text.match(/(?:starts?(?:ing)?|ends?(?:ing)?|contains?(?:ing)?|having|with|pattern|substring)\s+['"`]?([ab]+)\b/i);
     if (mAB) {
       var w = mAB[1].toLowerCase();
-      if (w !== 'a' && w !== 'an' && w !== 'and' && w !== 'as' && w !== 'at') {
+      if (w !== 'an' && w !== 'and' && w !== 'as' && w !== 'at') {
         hasABPattern = true;
       }
-    } else if (/\b[b]\b/i.test(text) || /(?:^|\s)a'?s?\s+and\s+b'?s?/i.test(text)) {
+    }
+    if (!hasABPattern && (/\b[b]\b/i.test(text) || /(?:^|\s)a'?s?\s+and\s+b'?s?/i.test(text))) {
       hasABPattern = true;
     }
 
@@ -732,14 +759,14 @@
     }
 
     // 4. First and last symbol relationships (same / different)
-    if (raw.match(/(?:starts?\s+and\s+ends?\s+with\s+(?:the\s+)?same\s+symbol|first\s+and\s+last\s+symbols?\s+(?:are\s+)?(?:the\s+)?same)/i)) {
+    if (raw.match(/(?:starts?(?:ing)?\s+and\s+ends?(?:ing)?\s+with\s+(?:the\s+)?same\s+symbol|first\s+and\s+last\s+symbols?\s+(?:are\s+)?(?:the\s+)?same)/i)) {
       return {
         type: 'same_start_end',
         dfa: buildSameStartEndDFA(alphabet, true),
         description: 'Strings starting and ending with the same symbol'
       };
     }
-    if (raw.match(/(?:starts?\s+and\s+ends?\s+with\s+different\s+symbols?|first\s+and\s+last\s+symbols?\s+(?:are\s+)?different)/i)) {
+    if (raw.match(/(?:starts?(?:ing)?\s+and\s+ends?(?:ing)?\s+with\s+different\s+symbols?|first\s+and\s+last\s+symbols?\s+(?:are\s+)?different)/i)) {
       return {
         type: 'diff_start_end',
         dfa: buildSameStartEndDFA(alphabet, false),
@@ -911,8 +938,8 @@
     }
 
     // 13. Forbidden patterns: consecutive ones/zeros or specific substring
-    if (raw.match(/(?:not\s+contain|do\s+not\s+contain|does\s+not\s+contain|without|never\s+contain|no)\s+/i)) {
-      var mConsec = raw.match(/(?:not\s+contain|do\s+not\s+contain|does\s+not\s+contain|without|no)\s+consecutive\s+(ones?|zeros?|1s?|0s?|a's?|b's?)/i);
+    if (raw.match(/(?:not\s+contain(?:ing)?|do\s+not\s+contain(?:ing)?|does\s+not\s+contain(?:ing)?|without|never\s+contain(?:ing)?|no|rejects?|disallows?|forbids?|excludes?|does\s+not\s+allow)\s+/i)) {
+      var mConsec = raw.match(/(?:not\s+contain(?:ing)?|do\s+not\s+contain(?:ing)?|does\s+not\s+contain(?:ing)?|without|never\s+contain(?:ing)?|no|rejects?|disallows?|forbids?|excludes?|does\s+not\s+allow)\s+(?:strings?\s+)?(?:containing\s+|having\s+|with\s+)?consecutive\s+(ones?|zeros?|1s?|0s?|a's?|b's?)/i);
       if (mConsec) {
         var sym = normalizeSymbol(mConsec[1], alphabet) || '1';
         var forbidPat = sym + sym;
@@ -925,7 +952,7 @@
         };
       }
 
-      var mSubForbid = raw.match(/(?:not\s+contain|do\s+not\s+contain|does\s+not\s+contain|without|no)\s+(?:the\s+)?(?:substring\s+)?['"`]?([01ab]+)['"`]?/i);
+      var mSubForbid = raw.match(/(?:not\s+contain(?:ing)?|do\s+not\s+contain(?:ing)?|does\s+not\s+contain(?:ing)?|without|never\s+contain(?:ing)?|no|rejects?|disallows?|forbids?|excludes?|does\s+not\s+allow)\s+(?:strings?\s+)?(?:containing\s+|having\s+|with\s+)?(?:the\s+)?(?:substring\s+)?['"`]?([01ab]+)['"`]?/i);
       if (mSubForbid && mSubForbid[1] && mSubForbid[1] !== 'a' && mSubForbid[1] !== 'an') {
         var pat = mSubForbid[1];
         var subDfa2 = buildSubstringDFA(alphabet, pat);
@@ -950,7 +977,7 @@
     }
 
     // 15. Suffix: ending with / ends with / terminates with
-    var mEnd = raw.match(/(?:ending\s+(?:with|in)|ends\s+(?:with|in)|terminates?\s+(?:with|in))\s+['"`]?([01ab]+)['"`]?/i);
+    var mEnd = raw.match(/(?:ending\s+(?:with|in)|ends?\s+(?:with|in)|terminates?\s+(?:with|in))\s+['"`]?([01ab]+)['"`]?/i);
     if (mEnd && mEnd[1]) {
       var pat = mEnd[1];
       return {
@@ -961,7 +988,7 @@
     }
 
     // 16. Prefix: starting with / starts with / begins with
-    var mStart = raw.match(/(?:starting\s+(?:with|in)|starts\s+(?:with|in)|begins?\s+(?:with|in)|beginning\s+(?:with|in))\s+['"`]?([01ab]+)['"`]?/i);
+    var mStart = raw.match(/(?:starting\s+(?:with|in)|starts?\s+(?:with|in)|begins?\s+(?:with|in)|beginning\s+(?:with|in))\s+['"`]?([01ab]+)['"`]?/i);
     if (mStart && mStart[1]) {
       var pat = mStart[1];
       return {
@@ -1007,6 +1034,75 @@
   }
 
   /**
+   * Parse a direct regular expression through AST -> Thompson NFA -> Subset DFA.
+   * @param {string} regexStr
+   * @param {string[]} [customAlphabet]
+   */
+  function parseRegex(regexStr, customAlphabet) {
+    var RP = getRegexParser();
+    var TC = getThompson();
+    var SC = getSubset();
+    if (!RP || !TC || !SC) {
+      return { success: false, error: 'Regex engine components are not loaded.' };
+    }
+    var parsed = RP.parse(regexStr);
+    if (!parsed.success) {
+      return { success: false, error: 'Malformed regular expression: ' + parsed.error };
+    }
+    var alphabet = (customAlphabet && customAlphabet.length) ? customAlphabet : parsed.alphabet;
+    var nfa = TC.regexToNFA(parsed.ast, alphabet);
+    var subsetRes = SC.nfaToDFA(nfa);
+    var renamed = renameStatesCleanly(subsetRes.dfa);
+    return {
+      success: true,
+      dfa: renamed,
+      alphabet: alphabet,
+      ruleType: 'regex_pipeline',
+      description: 'Regular expression: ' + parsed.formatted + ' over Σ = {' + alphabet.join(', ') + '}',
+      ast: parsed.ast,
+      nfa: nfa,
+      subsetSteps: subsetRes.steps,
+      formattedRegex: parsed.formatted
+    };
+  }
+
+  /**
+   * Detect regular expression within natural language text and compile it.
+   */
+  function extractAndBuildRegexDFA(text, explicitAlphabet) {
+    var cleaned = text.trim();
+    var regexStr = null;
+
+    // 1. Explicit pattern prefix: e.g. "matching (0+1)*01", "regex (a|b)*abb", "pattern: 0*1*"
+    var mExp = cleaned.match(/(?:matching|matches|match|regex|regular\s+expression|pattern)\s*(?:is|=|:)?\s*['"`]?([0-9a-zA-Z*+?|()ε∅^$\s]+)['"`]?/i);
+    if (mExp && mExp[1]) {
+      var candidate = mExp[1].trim();
+      if (/[*+?|()]/.test(candidate) || /^[0-9a-zA-Z]+$/.test(candidate)) {
+        regexStr = candidate;
+      }
+    }
+
+    // 2. Parenthesized expressions inside natural language: e.g. "accepting strings matching (0+1)*01"
+    if (!regexStr) {
+      var mParen = cleaned.match(/\(([0-9a-zA-Z*+?|()ε∅\s]+)\)[*+?]?[0-9a-zA-Z*+?|()]*/);
+      if (mParen) {
+        regexStr = mParen[0].trim();
+      }
+    }
+
+    // 3. Raw regex string without English query keywords (e.g. "(0|1)*01", "a*b*", "00|11", "(a+b)*abb")
+    if (!regexStr && !/\b(?:construct|minimum|minimal|dfa|accepts?|strings?|language|over|alphabet|binary)\b/i.test(cleaned)) {
+      if (/[*+?|()]/.test(cleaned) || /^[01ab]+$/.test(cleaned)) {
+        regexStr = cleaned;
+      }
+    }
+
+    if (!regexStr) return null;
+    var res = parseRegex(regexStr, explicitAlphabet);
+    return res.success ? res : null;
+  }
+
+  /**
    * Main natural language parser.
    * Understands compound expressions (AND, OR), multiple endings, threshold counts, etc.
    * @param {string} input
@@ -1029,7 +1125,15 @@
       };
     }
 
-    var text = input.trim();
+    var text = input.trim()
+      .replace(/\bzero-one\b/gi, '01')
+      .replace(/\bone-zero\b/gi, '10')
+      .replace(/\bzero-zero\b/gi, '00')
+      .replace(/\bone-one\b/gi, '11')
+      .replace(/\bzero\s+one\b/gi, '01')
+      .replace(/\bone\s+zero\b/gi, '10')
+      .replace(/\bzero\s+zero\b/gi, '00')
+      .replace(/\bone\s+one\b/gi, '11');
 
     // Check for theoretical non-regular languages upfront
     var nonReg = checkNonRegularLanguage(text);
@@ -1044,17 +1148,24 @@
     var alphaRes = extractAlphabet(text);
     var alphabet = alphaRes.alphabet;
 
+    // Check if input contains or is a regular expression
+    var regexResult = extractAndBuildRegexDFA(text, alphaRes.explicit ? alphabet : null);
+    if (regexResult) {
+      return regexResult;
+    }
+
     // Normalizing conversational question prefixes
     // e.g. "Construct a minimum DFA that accepts all binary strings ending with 00 or 11."
     var normalized = text
       .replace(/^(?:construct|design|build|create|give|generate|make|find)\s+(?:a|an)?\s*(?:minimum|minimal)?\s*dfa\s*(?:over\s*\{[^}]+\})?\s*(?:that|which|to)?\s*(?:accepts?|recognizes?)?\s*(?:all)?\s*(?:binary)?\s*strings?\s*(?:over\s*\{[^}]+\})?\s*(?:such\s+that|where|having|with)?\s*/i, '')
+      .replace(/^(?:all\s+)?(?:binary\s+)?strings?\s*(?:that|which|where|having|with|to)?\s*(?:accepts?|recognizes?)?\s*/i, '')
       .replace(/^(?:accepts?|recognizes?)\s+(?:all\s+)?(?:binary\s+)?strings?\s*(?:where|having|with|that)?\s*/i, '')
       .trim();
 
     if (!normalized) normalized = text;
 
     // Pattern 1: Combined ending options (e.g. "ends with either 00 or 11", "ending with 00 or 11")
-    var mMultiEnd = normalized.match(/(?:ending\s+(?:with|in)|ends\s+(?:with|in))\s+(?:either\s+)?['"`]?([01ab]+)['"`]?\s+or\s+['"`]?([01ab]+)['"`]?/i);
+    var mMultiEnd = normalized.match(/(?:ending\s+(?:with|in)|ends?\s+(?:with|in)|terminates?\s+(?:with|in))\s+(?:either\s+)?['"`]?([01ab]+)['"`]?\s+or\s+['"`]?([01ab]+)['"`]?/i);
     if (mMultiEnd) {
       var pat1 = mMultiEnd[1];
       var pat2 = mMultiEnd[2];
@@ -1071,7 +1182,7 @@
     }
 
     // Pattern 2: Combined starting options (e.g. "starts with either 00 or 11")
-    var mMultiStart = normalized.match(/(?:starting\s+(?:with|in)|starts\s+(?:with|in))\s+(?:either\s+)?['"`]?([01ab]+)['"`]?\s+or\s+['"`]?([01ab]+)['"`]?/i);
+    var mMultiStart = normalized.match(/(?:starting\s+(?:with|in)|starts?\s+(?:with|in)|begins?\s+(?:with|in))\s+(?:either\s+)?['"`]?([01ab]+)['"`]?\s+or\s+['"`]?([01ab]+)['"`]?/i);
     if (mMultiStart) {
       var pat1 = mMultiStart[1];
       var pat2 = mMultiStart[2];
@@ -1088,7 +1199,7 @@
     }
 
     // Pattern 3: Contains both X and Y
-    var mBothSub = normalized.match(/contains?\s+both\s+['"`]?([01ab]+)['"`]?\s+and\s+['"`]?([01ab]+)['"`]?/i) ||
+    var mBothSub = normalized.match(/contains?(?:ing)?\s+both\s+['"`]?([01ab]+)['"`]?\s+and\s+['"`]?([01ab]+)['"`]?/i) ||
                    normalized.match(/having\s+both\s+substrings?\s+['"`]?([01ab]+)['"`]?\s+and\s+['"`]?([01ab]+)['"`]?/i);
     if (mBothSub) {
       var p1 = mBothSub[1], p2 = mBothSub[2];
@@ -1199,6 +1310,7 @@
     buildComplementDFA: buildComplementDFA,
     buildProductDFA: buildProductDFA,
     renameStatesCleanly: renameStatesCleanly,
+    parseRegex: parseRegex,
     parse: parseNaturalLanguage
   };
 });

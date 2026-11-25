@@ -194,7 +194,12 @@
             </label>
             <div class="method-radio-group">
               <label class="method-radio-label">
-                <input type="radio" name="method" value="tf" checked>
+                <input type="radio" name="method" value="hopcroft" checked>
+                <span class="custom-radio-dot"></span>
+                <span>Hopcroft's Algorithm (O(n log n))</span>
+              </label>
+              <label class="method-radio-label">
+                <input type="radio" name="method" value="tf">
                 <span class="custom-radio-dot"></span>
                 <span>Table-Filling</span>
               </label>
@@ -294,8 +299,34 @@
             </div>
           </div>
 
-          <!-- ======================= NATURAL LANGUAGE DFA INSTRUCTION BOX ======================= -->
+          <!-- ======================= UNIVERSAL INPUT SYSTEM & PIPELINE ======================= -->
           <section id="nlInstructionCard" class="card nl-instruction-card">
+            <!-- Mode Switcher Tabs -->
+            <div class="pipeline-mode-tabs" role="tablist" aria-label="Input Mode Selector">
+              <button id="tabModeNL" type="button" class="pipeline-tab-btn active" data-mode="nl" role="tab" aria-selected="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>Natural Language Query</span>
+              </button>
+              <button id="tabModeRegex" type="button" class="pipeline-tab-btn" data-mode="regex" role="tab" aria-selected="false">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="4 17 10 11 4 5"></polyline>
+                  <line x1="12" y1="19" x2="20" y2="19"></line>
+                </svg>
+                <span>Regular Expression (AST → NFA → DFA)</span>
+              </button>
+              <button id="tabModeManual" type="button" class="pipeline-tab-btn" data-mode="manual" role="tab" aria-selected="false">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+                <span>Manual 5-Tuple / Presets</span>
+              </button>
+            </div>
+
+            <!-- Header -->
             <div class="nl-card-header">
               <div class="nl-header-icon-bubble">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nl-wand-icon">
@@ -304,105 +335,195 @@
                 </svg>
               </div>
               <div class="nl-header-text">
-                <h2 class="nl-card-title">Describe Your DFA Task</h2>
-                <p class="nl-card-subtitle">Describe the language you want your DFA to accept. We will construct and minimize it automatically.</p>
+                <h2 id="pipelineHeaderTitle" class="nl-card-title">Universal Automata Construction &amp; Minimization</h2>
+                <p id="pipelineHeaderSubtitle" class="nl-card-subtitle">Enter any regular language description in plain English or standard regular expressions. The engine synthesizes, validates, and minimizes the complete DFA.</p>
               </div>
             </div>
 
             <div class="nl-card-body">
-              <div class="nl-input-container">
-                <textarea id="nlInput" class="nl-textarea" rows="2"
-                  placeholder="Describe any language or question in plain English (e.g. 'ends with 01', 'divisible by 3', 'at least two 0s', 'starts and ends with same symbol', 'every 0 followed by 1', 'even length')..."></textarea>
-                <button id="nlClearBtn" type="button" class="nl-clear-btn" title="Clear instruction" aria-label="Clear instruction">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
+              <!-- PANEL 1: Natural Language Mode -->
+              <div id="panelNL" class="pipeline-panel">
+                <div class="nl-input-container">
+                  <textarea id="nlInput" class="nl-textarea" rows="2"
+                    placeholder="Describe any language or question in plain English (e.g. 'ends with 01', 'divisible by 3', 'at least two 0s', 'starts and ends with same symbol', 'ends with 00 or 11', 'no consecutive 1s')..."></textarea>
+                  <button id="nlClearBtn" type="button" class="nl-clear-btn" title="Clear instruction" aria-label="Clear instruction">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="nl-actions-bar">
+                  <button id="nlGenerateBtn" type="button" class="btn primary nl-generate-btn">
+                    <svg width="16" height="16" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span>Generate &amp; Minimize DFA</span>
+                    <svg width="14" height="14" class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </button>
+
+                  <div id="nlSpinner" class="nl-spinner" hidden>
+                    <div class="nl-spinner-circle"></div>
+                    <span>Constructing &amp; minimizing DFA...</span>
+                  </div>
+                </div>
+
+                <!-- Try an Example Chips -->
+                <div class="nl-examples-container">
+                  <div class="nl-examples-heading">
+                    <svg width="14" height="14" class="nl-examples-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span>Natural Language Examples:</span>
+                  </div>
+                  <div id="nlExamplesGrid" class="nl-examples-grid">
+                    <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA over the alphabet {0,1} that accepts all strings ending with 01.">
+                      <span class="chip-tag">Suffix</span>
+                      <span class="chip-label">Ends with 01</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all strings containing an even number of zeros.">
+                      <span class="chip-tag">Parity</span>
+                      <span class="chip-label">Even number of zeros</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings starting with 10.">
+                      <span class="chip-tag">Prefix</span>
+                      <span class="chip-label">Starts with 10</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings containing the substring 101.">
+                      <span class="chip-tag">Substring</span>
+                      <span class="chip-label">Contains 101</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all strings having an odd number of ones.">
+                      <span class="chip-tag">Parity</span>
+                      <span class="chip-label">Odd number of ones</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings that do not contain consecutive ones.">
+                      <span class="chip-tag">Forbidden</span>
+                      <span class="chip-label">No consecutive 1s</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings ending with 00 or 11.">
+                      <span class="chip-tag">Union</span>
+                      <span class="chip-label">Ends with 00 or 11</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings having an even number of zeros and an odd number of ones.">
+                      <span class="chip-tag">Compound</span>
+                      <span class="chip-label">Even 0s and Odd 1s</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Construct a DFA for binary numbers divisible by 3.">
+                      <span class="chip-tag">Arithmetic</span>
+                      <span class="chip-label">Divisible by 3</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Accept strings containing at least two 0s.">
+                      <span class="chip-tag">Count</span>
+                      <span class="chip-label">At least two 0s</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Construct a DFA where strings start and end with the same symbol.">
+                      <span class="chip-tag">Relation</span>
+                      <span class="chip-label">Same start &amp; end</span>
+                    </button>
+                    <button type="button" class="nl-chip" data-prompt="Accept all strings where every 0 is followed by 1.">
+                      <span class="chip-tag">Sequence</span>
+                      <span class="chip-label">Every 0 followed by 1</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <div class="nl-actions-bar">
-                <button id="nlGenerateBtn" type="button" class="btn primary nl-generate-btn">
-                  <svg width="16" height="16" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                  <span>Generate &amp; Minimize DFA</span>
-                  <svg width="14" height="14" class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                </button>
+              <!-- PANEL 2: Regular Expression Mode -->
+              <div id="panelRegex" class="pipeline-panel" hidden>
+                <div class="nl-input-container">
+                  <textarea id="regexInput" class="nl-textarea" rows="2"
+                    placeholder="Enter formal regular expression (e.g. (0|1)*01, a*b*, (a|b)*abb, (00|11)*, 1(0|1)*0)..."></textarea>
+                  <button id="regexClearBtn" type="button" class="nl-clear-btn" title="Clear expression" aria-label="Clear expression">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
 
-                <div id="nlSpinner" class="nl-spinner" hidden>
-                  <div class="nl-spinner-circle"></div>
-                  <span>Constructing &amp; minimizing DFA...</span>
+                <!-- Operator quick insertion buttons -->
+                <div class="regex-operator-bar">
+                  <span class="op-label" style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-right:4px;">Insert Operator:</span>
+                  <button type="button" class="regex-op-btn" data-insert="|">Union (|)</button>
+                  <button type="button" class="regex-op-btn" data-insert="*">Star (*)</button>
+                  <button type="button" class="regex-op-btn" data-insert="+">Plus (+)</button>
+                  <button type="button" class="regex-op-btn" data-insert="?">Optional (?)</button>
+                  <button type="button" class="regex-op-btn" data-insert="()">Group ()</button>
+                  <button type="button" class="regex-op-btn" data-insert="ε">Epsilon (ε)</button>
+                  <button type="button" class="regex-op-btn" data-insert="∅">Empty (∅)</button>
+                </div>
+
+                <div class="nl-actions-bar" style="margin-top:12px;">
+                  <button id="regexGenerateBtn" type="button" class="btn primary nl-generate-btn">
+                    <svg width="16" height="16" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="4 17 10 11 4 5"></polyline>
+                      <line x1="12" y1="19" x2="20" y2="19"></line>
+                    </svg>
+                    <span>Compile AST → NFA → DFA &amp; Minimize</span>
+                    <svg width="14" height="14" class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </button>
+
+                  <div id="regexSpinner" class="nl-spinner" hidden>
+                    <div class="nl-spinner-circle"></div>
+                    <span>Parsing AST &amp; running Thompson + Subset...</span>
+                  </div>
+                </div>
+
+                <!-- Try a Regex Chip -->
+                <div class="nl-examples-container">
+                  <div class="nl-examples-heading">
+                    <svg width="14" height="14" class="nl-examples-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span>Example Regular Expressions:</span>
+                  </div>
+                  <div id="regexExamplesGrid" class="nl-examples-grid">
+                    <button type="button" class="nl-chip regex-chip" data-regex="(0|1)*01">
+                      <span class="chip-tag">Classic</span>
+                      <span class="chip-label">(0|1)*01</span>
+                    </button>
+                    <button type="button" class="nl-chip regex-chip" data-regex="(a|b)*abb">
+                      <span class="chip-tag">Pattern</span>
+                      <span class="chip-label">(a|b)*abb</span>
+                    </button>
+                    <button type="button" class="nl-chip regex-chip" data-regex="a*b*">
+                      <span class="chip-tag">Sorted</span>
+                      <span class="chip-label">a*b*</span>
+                    </button>
+                    <button type="button" class="nl-chip regex-chip" data-regex="(00|11)*">
+                      <span class="chip-tag">Runs</span>
+                      <span class="chip-label">(00|11)*</span>
+                    </button>
+                    <button type="button" class="nl-chip regex-chip" data-regex="1(0|1)*0">
+                      <span class="chip-tag">Bounded</span>
+                      <span class="chip-label">1(0|1)*0</span>
+                    </button>
+                    <button type="button" class="nl-chip regex-chip" data-regex="(0|1)*101(0|1)*">
+                      <span class="chip-tag">Subword</span>
+                      <span class="chip-label">contains 101</span>
+                    </button>
+                    <button type="button" class="nl-chip regex-chip" data-regex="0*1*2*">
+                      <span class="chip-tag">3-Symbol</span>
+                      <span class="chip-label">0*1*2*</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
               <!-- Real-time feedback and validation alert -->
               <div id="nlFeedback" class="nl-feedback-banner" hidden></div>
-
-              <!-- Try an Example Chips -->
-              <div class="nl-examples-container">
-                <div class="nl-examples-heading">
-                  <svg width="14" height="14" class="nl-examples-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                  </svg>
-                  <span>Try an Example:</span>
-                </div>
-                <div id="nlExamplesGrid" class="nl-examples-grid">
-                  <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA over the alphabet {0,1} that accepts all strings ending with 01.">
-                    <span class="chip-tag">Suffix</span>
-                    <span class="chip-label">Ends with 01</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all strings containing an even number of zeros.">
-                    <span class="chip-tag">Parity</span>
-                    <span class="chip-label">Even number of zeros</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings starting with 10.">
-                    <span class="chip-tag">Prefix</span>
-                    <span class="chip-label">Starts with 10</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings containing the substring 101.">
-                    <span class="chip-tag">Substring</span>
-                    <span class="chip-label">Contains 101</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all strings having an odd number of ones.">
-                    <span class="chip-tag">Parity</span>
-                    <span class="chip-label">Odd number of ones</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings that do not contain consecutive ones.">
-                    <span class="chip-tag">Forbidden</span>
-                    <span class="chip-label">No consecutive 1s</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings ending with 00 or 11.">
-                    <span class="chip-tag">Union</span>
-                    <span class="chip-label">Ends with 00 or 11</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings having an even number of zeros and an odd number of ones.">
-                    <span class="chip-tag">Compound</span>
-                    <span class="chip-label">Even 0s and Odd 1s</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Construct a DFA for binary numbers divisible by 3.">
-                    <span class="chip-tag">Arithmetic</span>
-                    <span class="chip-label">Divisible by 3</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Accept strings containing at least two 0s.">
-                    <span class="chip-tag">Count</span>
-                    <span class="chip-label">At least two 0s</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Construct a DFA where strings start and end with the same symbol.">
-                    <span class="chip-tag">Relation</span>
-                    <span class="chip-label">Same start & end</span>
-                  </button>
-                  <button type="button" class="nl-chip" data-prompt="Accept all strings where every 0 is followed by 1.">
-                    <span class="chip-tag">Sequence</span>
-                    <span class="chip-label">Every 0 followed by 1</span>
-                  </button>
-                </div>
-              </div>
             </div>
           </section>
 
@@ -1258,8 +1379,13 @@
 
   <!-- Application Scripts -->
   <script src="js/hopcroft-karp.js"></script>
+  <script src="js/regex-parser.js"></script>
+  <script src="js/thompson.js"></script>
+  <script src="js/subset-construction.js"></script>
+  <script src="js/hopcroft.js"></script>
   <script src="js/algorithms.js"></script>
   <script src="js/nl-dfa.js"></script>
+  <script src="js/pipeline.js"></script>
   <script src="js/presets.js"></script>
   <script src="js/graph.js"></script>
   <script src="js/testcases.js"></script>

@@ -663,6 +663,72 @@
       });
     }
 
+    // Phase 2c: Hopcroft's Algorithm O(n log n)
+    if (r.hopcroft) {
+      r.hopcroft.steps.forEach(function (st) {
+        if (st.type === 'hopcroft_init') {
+          S.push({
+            phase: 'Hopcroft',
+            title: 'Step 3: Hopcroft Initial Partition',
+            html: '<p>Hopcroft starts by partitioning states into non-accepting states and accepting states: <b>' +
+              st.partitions.map(set).join('</b> and <b>') + '</b>.</p>' +
+              '<p class="note">Worklist initialized with ' + (st.worklist.length ? st.worklist.map(function (w) { return '(' + set(w.block) + ', ' + esc(w.symbol) + ')'; }).join(', ') : 'no splitters') + '.</p>',
+            graph: { dfa: red, label: 'Hopcroft Initial Groups (' + st.partitions.length + ' Groups)', groups: st.partitions },
+            work: { kind: 'hopcroft', step: st }
+          });
+        } else if (st.type === 'hopcroft_split') {
+          S.push({
+            phase: 'Hopcroft',
+            title: 'Step 3: Split Block on Symbol “' + esc(st.symbol) + '”',
+            html: '<p>Splitter <b>' + set(st.splitter) + '</b> on symbol “<b>' + esc(st.symbol) + '</b>” distinguishes group <b>' + set(st.targetBlock) + '</b>.' +
+              ' It splits into <b>' + set(st.splitParts[0]) + '</b> and <b>' + set(st.splitParts[1]) + '</b>.</p>',
+            graph: { dfa: red, label: 'Split on “' + esc(st.symbol) + '” (' + st.newPartition.length + ' Groups)', groups: st.newPartition, active: st.targetBlock },
+            work: { kind: 'hopcroft', step: st }
+          });
+        } else if (st.type === 'hopcroft_stable') {
+          S.push({
+            phase: 'Hopcroft',
+            title: 'Step 3: Hopcroft Partition Stable',
+            html: '<p>Worklist is empty. Partition refinement has converged to minimal equivalence classes in <b>' + st.iterations + '</b> iterations.</p>' +
+              '<p>Equivalent classes: ' + st.finalClasses.map(set).join(' ') + '</p>',
+            graph: { dfa: red, label: 'Minimal Equivalence Classes (' + st.finalClasses.length + ' Groups)', groups: st.finalClasses },
+            work: { kind: 'hopcroft', step: st }
+          });
+        }
+      });
+    }
+
+    // Phase 2c: Hopcroft's Algorithm (O(n log n))
+    if (r.hopcroft) {
+      r.hopcroft.steps.forEach(function (st) {
+        if (st.type === 'hopcroft_init') {
+          S.push({
+            phase: 'Hopcroft', title: 'Step 3: Hopcroft Initial Partition',
+            html: '<p>Hopcroft partition refinement begins by separating final states from non-final states: <b>' +
+              st.partitions.map(set).join('</b> and <b>') + '</b>.</p><p class="note">Worklist queue initialized with ' +
+              st.worklist.length + ' splitter candidate(s).</p>',
+            graph: { dfa: red, label: 'Hopcroft Initial Groups (' + st.partitions.length + ' Groups)', groups: st.partitions },
+            work: { kind: 'hopcroft', step: st }
+          });
+        } else if (st.type === 'hopcroft_split') {
+          S.push({
+            phase: 'Hopcroft', title: 'Step 3: Split Block on “' + esc(st.symbol) + '”',
+            html: '<p>Using splitter group <b>' + set(st.splitter) + '</b> on symbol “<b>' + esc(st.symbol) + '</b>”, group <b>' +
+              set(st.targetBlock) + '</b> is distinguishable and split into <b>' + set(st.splitParts[0]) + '</b> and <b>' + set(st.splitParts[1]) + '</b>.</p>',
+            graph: { dfa: red, label: 'Split Block (' + st.newPartition.length + ' Groups)', groups: st.newPartition, active: st.targetBlock },
+            work: { kind: 'hopcroft', step: st }
+          });
+        } else if (st.type === 'hopcroft_stable') {
+          S.push({
+            phase: 'Hopcroft', title: 'Step 3: Hopcroft Worklist Stable',
+            html: '<p>No further partition splits possible. Hopcroft converged to the minimal partition in <b>' + st.iterations + '</b> iterations.</p><p>Equivalence classes: ' + st.finalClasses.map(set).join(' ') + '</p>',
+            graph: { dfa: red, label: 'Minimal Equivalence Classes (' + st.finalClasses.length + ' Groups)', groups: st.finalClasses },
+            work: { kind: 'hopcroft', step: st }
+          });
+        }
+      });
+    }
+
     if (r.tf && r.pr) {
       S.push({
         phase: 'Compare', title: 'Step 3: Method Comparison',
@@ -834,6 +900,26 @@
     else if (w.kind === 'reach') { title.textContent = 'BFS Traversal State'; box.innerHTML = reachHTML(w); }
     else if (w.kind === 'tf') { title.textContent = 'Distinguishability Matrix'; box.innerHTML = tfHTML(w); }
     else if (w.kind === 'pr') { title.textContent = 'Partition Signature Table'; box.innerHTML = prHTML(w); }
+    else if (w.kind === 'hopcroft') {
+      title.textContent = 'Hopcroft Partition Refinement & Worklist';
+      var st = w.step;
+      var hHtml = '<div style="font-size:0.85rem; line-height:1.6;">';
+      if (st.type === 'hopcroft_init') {
+        hHtml += '<div class="notification-banner ok" style="margin-bottom:10px;"><strong>P₀ Initial Partition:</strong> Split into F and Q\\F</div>' +
+          '<div class="kv"><span>Initial Groups:</span><div>' + st.partitions.map(set).join(' ') + '</div></div>' +
+          '<div class="kv"><span>Worklist Queue:</span><div>' + (st.worklist.map(function (x) { return '(' + set(x.block) + ', ' + esc(x.symbol) + ')'; }).join(', ') || '∅') + '</div></div>';
+      } else if (st.type === 'hopcroft_split') {
+        hHtml += '<div class="notification-banner warn" style="margin-bottom:10px;"><strong>Group Split:</strong> ' + set(st.targetBlock) + ' refined on symbol “' + esc(st.symbol) + '”</div>' +
+          '<div class="kv"><span>Splitter:</span><div>' + set(st.splitter) + ' on symbol “' + esc(st.symbol) + '”</div></div>' +
+          '<div class="kv"><span>Split Parts:</span><div>' + set(st.splitParts[0]) + ' and ' + set(st.splitParts[1]) + '</div></div>' +
+          '<div class="kv"><span>Active Partition:</span><div>' + st.newPartition.map(set).join(' ') + '</div></div>';
+      } else if (st.type === 'hopcroft_stable') {
+        hHtml += '<div class="notification-banner ok" style="margin-bottom:10px;"><strong>Convergence:</strong> Worklist exhausted in ' + st.iterations + ' rounds.</div>' +
+          '<div class="kv"><span>Equivalence Classes:</span><div>' + st.finalClasses.map(set).join(' ') + '</div></div>';
+      }
+      hHtml += '</div>';
+      box.innerHTML = hHtml;
+    }
     else if (w.kind === 'compare') {
       title.textContent = 'Equivalence Partition Agreement';
       box.innerHTML = '<div class="notification-banner ok" style="margin-bottom:12px;"><strong>Method Agreement:</strong> Both algorithms generated isomorphic partitions.</div>' +
@@ -1305,16 +1391,58 @@
     });
   }
 
-  // Natural Language DFA Synthesizer & Minimizer
-  function initNaturalLanguageDFA() {
+  // Universal Input & Automata Pipeline Controller
+  function initUniversalPipeline() {
     var nlInput = $('nlInput');
     var nlGenerateBtn = $('nlGenerateBtn');
     var nlClearBtn = $('nlClearBtn');
     var nlFeedback = $('nlFeedback');
     var nlSpinner = $('nlSpinner');
-    var exampleChips = document.querySelectorAll('.nl-chip');
+    var exampleChips = document.querySelectorAll('#nlExamplesGrid .nl-chip');
 
-    if (!nlInput || !nlGenerateBtn) return;
+    var regexInput = $('regexInput');
+    var regexGenerateBtn = $('regexGenerateBtn');
+    var regexClearBtn = $('regexClearBtn');
+    var regexSpinner = $('regexSpinner');
+    var regexChips = document.querySelectorAll('.regex-chip');
+    var regexOpBtns = document.querySelectorAll('.regex-op-btn');
+
+    var tabModeNL = $('tabModeNL');
+    var tabModeRegex = $('tabModeRegex');
+    var tabModeManual = $('tabModeManual');
+    var panelNL = $('panelNL');
+    var panelRegex = $('panelRegex');
+
+    var headerTitle = $('pipelineHeaderTitle');
+    var headerSubtitle = $('pipelineHeaderSubtitle');
+
+    function switchMode(mode) {
+      if (tabModeNL) tabModeNL.classList.toggle('active', mode === 'nl');
+      if (tabModeRegex) tabModeRegex.classList.toggle('active', mode === 'regex');
+      if (tabModeManual) tabModeManual.classList.toggle('active', mode === 'manual');
+
+      if (panelNL) panelNL.hidden = (mode !== 'nl');
+      if (panelRegex) panelRegex.hidden = (mode !== 'regex');
+
+      if (mode === 'nl') {
+        if (headerTitle) headerTitle.textContent = 'Universal Natural Language DFA Synthesizer';
+        if (headerSubtitle) headerSubtitle.textContent = 'Describe the language you want your DFA to accept. We will construct, validate, and minimize it automatically.';
+        if (nlInput) nlInput.focus();
+      } else if (mode === 'regex') {
+        if (headerTitle) headerTitle.textContent = 'Regular Expression Pipeline (AST → NFA → DFA)';
+        if (headerSubtitle) headerSubtitle.textContent = 'Compile formal regular expressions via Thompson\'s Construction and Subset Powerset into minimal DFAs.';
+        if (regexInput) regexInput.focus();
+      } else if (mode === 'manual') {
+        var manualCard = $('dfaFormCard') || document.querySelector('.card:not(.nl-instruction-card)');
+        if (manualCard) {
+          manualCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+
+    if (tabModeNL) tabModeNL.addEventListener('click', function () { switchMode('nl'); });
+    if (tabModeRegex) tabModeRegex.addEventListener('click', function () { switchMode('regex'); });
+    if (tabModeManual) tabModeManual.addEventListener('click', function () { switchMode('manual'); });
 
     function showFeedback(type, title, message, suggestion) {
       if (!nlFeedback) return;
@@ -1340,64 +1468,159 @@
       nlFeedback.innerHTML = '';
     }
 
-    function handleGenerate() {
-      var text = (nlInput.value || '').trim();
+    function handleNLGenerate() {
+      var text = (nlInput && nlInput.value || '').trim();
       clearFeedback();
 
       if (!text) {
         showFeedback('bad', 'Empty Instruction', 'Please describe the DFA language or pattern you want to accept.', 'Try clicking one of the example prompts below to get started.');
-        nlInput.focus();
+        if (nlInput) nlInput.focus();
         return;
       }
 
-      if (typeof window.NLDFA === 'undefined') {
-        showFeedback('bad', 'Engine Not Ready', 'Natural language DFA synthesizer module is still initializing. Please try again.', '');
-        return;
-      }
-
-      // Show spinner & disable button
       if (nlSpinner) nlSpinner.hidden = false;
-      nlGenerateBtn.disabled = true;
+      if (nlGenerateBtn) nlGenerateBtn.disabled = true;
 
-      setTimeout(function () {
-        var parseRes = window.NLDFA.parse(text);
+      // Determine backend endpoint (macOS AirPlay uses 5000, so default is 5050)
+      var apiEndpoint = (window.location.port === '5050' || !window.location.port)
+        ? '/api/interpret-language'
+        : 'http://localhost:5050/api/interpret-language';
 
+      fetch(apiEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: text, method: 'hopcroft' })
+      })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, status: res.status, data: data }; });
+      })
+      .then(function (result) {
         if (nlSpinner) nlSpinner.hidden = true;
-        nlGenerateBtn.disabled = false;
+        if (nlGenerateBtn) nlGenerateBtn.disabled = false;
 
-        if (!parseRes.success) {
-          showFeedback('bad', 'Pattern Identification Failed', esc(parseRes.error || 'Could not construct a valid DFA from this description.'), parseRes.suggestion || 'Please use clear patterns like "ending with 01", "starting with 10", "containing 101", "even number of zeros", or "ends with 00 or 11".');
+        var data = result.data;
+
+        // Handle Clarification
+        if (data.status === 'clarification_needed' || (data.specification && data.specification.needsClarification)) {
+          showFeedback('warn', 'Clarification Needed', esc(data.clarificationQuestion || data.specification.clarificationQuestion || 'Language description is ambiguous.'), 'Please specify the exact alphabet and constraints.');
           return;
         }
 
-        // Successfully synthesized DFA
-        var dfa = parseRes.dfa;
-        showFeedback('ok', 'DFA Successfully Synthesized & Minimized!', esc(parseRes.description) + ' (' + dfa.states.length + ' initial states generated)');
-
-        // Populate manual editor inputs
-        loadDFA(dfa);
-
-        // Run full minimization workflow
-        run(dfa);
-
-        // Smooth scroll to workflow stepper so user can view the 4 stages
-        var stepper = document.querySelector('.workflow-stepper-bar');
-        if (stepper) {
-          stepper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Handle Non-Regular
+        if (data.status === 'non_regular' || (data.specification && data.specification.languageType === 'non-regular')) {
+          showFeedback('bad', 'Non-Regular Language Detected', esc(data.explanation || data.specification.explanation || 'Language is not regular.'), 'By the Pumping Lemma, this language cannot be recognized by any finite automaton.');
+          return;
         }
-      }, 150);
+
+        if (result.ok && data.status === 'success' && data.pipeline && data.pipeline.originalDFA) {
+          var dfa = data.pipeline.originalDFA;
+          var isAi = data.source === 'gemini';
+          var titleMsg = isAi
+            ? '🤖 Gemini AI Interpreted & Minimized!'
+            : '✓ Synthesized & Minimized (Deterministic Engine)';
+          var desc = (data.specification && data.specification.regex)
+            ? 'Expression: ' + data.specification.regex + ' (' + dfa.states.length + ' initial states)'
+            : esc(data.specification.explanation);
+
+          showFeedback('ok', titleMsg, desc, data.warning ? 'Notice: ' + data.warning : null);
+          loadDFA(dfa);
+          run(dfa);
+
+          var stepper = document.querySelector('.workflow-stepper-bar');
+          if (stepper) stepper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          return;
+        }
+
+        // Fallback to client-side local parser if server returned an error
+        runClientSideFallback(text);
+      })
+      .catch(function () {
+        // Backend not reachable, fall back to client-side local parser
+        if (nlSpinner) nlSpinner.hidden = true;
+        if (nlGenerateBtn) nlGenerateBtn.disabled = false;
+        runClientSideFallback(text, 'Backend offline / running offline deterministic mode.');
+      });
     }
 
-    nlGenerateBtn.addEventListener('click', handleGenerate);
-
-    nlInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleGenerate();
+    function runClientSideFallback(text, notice) {
+      if (typeof window.NLDFA === 'undefined') {
+        showFeedback('bad', 'Engine Not Ready', 'Automata engine is still initializing. Please try again.', '');
+        return;
       }
-    });
+      var parseRes = window.NLDFA.parse(text);
+      if (!parseRes.success) {
+        showFeedback('bad', 'Pattern Identification Failed', esc(parseRes.error || 'Could not construct a valid DFA from this description.'), parseRes.suggestion || 'Please use clear patterns like "ending with 01", "starting with 10", "containing 101", "even number of zeros", or "ends with 00 or 11".');
+        return;
+      }
+      var dfa = parseRes.dfa;
+      showFeedback('ok', 'DFA Synthesized & Minimized (Offline Mode)', esc(parseRes.description) + ' (' + dfa.states.length + ' initial states)', notice || null);
+      loadDFA(dfa);
+      run(dfa);
+      var stepper = document.querySelector('.workflow-stepper-bar');
+      if (stepper) stepper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 
-    if (nlClearBtn) {
+    function handleRegexGenerate() {
+      var expr = (regexInput && regexInput.value || '').trim();
+      clearFeedback();
+
+      if (!expr) {
+        showFeedback('bad', 'Empty Regular Expression', 'Please enter a regular expression such as (0|1)*01 or a*b*.', 'Try clicking one of the regex examples below.');
+        if (regexInput) regexInput.focus();
+        return;
+      }
+
+      if (typeof window.AutomataPipeline === 'undefined' && typeof window.NLDFA === 'undefined') {
+        showFeedback('bad', 'Engine Not Ready', 'Pipeline compiler module is still initializing. Please try again.', '');
+        return;
+      }
+
+      if (regexSpinner) regexSpinner.hidden = false;
+      if (regexGenerateBtn) regexGenerateBtn.disabled = true;
+
+      setTimeout(function () {
+        var resObj = null;
+        if (window.AutomataPipeline && window.AutomataPipeline.run) {
+          resObj = window.AutomataPipeline.run({ input: expr, mode: 'regex', method: 'hopcroft' });
+        } else if (window.NLDFA && window.NLDFA.parseRegex) {
+          var pr = window.NLDFA.parseRegex(expr);
+          if (pr.success) resObj = { success: true, originalDFA: pr.dfa, specification: pr.description };
+          else resObj = { success: false, error: pr.error };
+        }
+
+        if (regexSpinner) regexSpinner.hidden = true;
+        if (regexGenerateBtn) regexGenerateBtn.disabled = false;
+
+        if (!resObj || !resObj.success) {
+          showFeedback('bad', 'Regex Compilation Error', esc(resObj ? resObj.error : 'Failed to parse regular expression.'), 'Check parenthesis matching and valid symbols.');
+          return;
+        }
+
+        var dfa = resObj.originalDFA;
+        showFeedback('ok', 'Regular Expression Compiled to Complete DFA!', esc(resObj.specification) + ' (' + dfa.states.length + ' DFA states generated via Thompson + Subset Construction)');
+        loadDFA(dfa);
+        run(dfa);
+
+        var stepper = document.querySelector('.workflow-stepper-bar');
+        if (stepper) stepper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 120);
+    }
+
+    if (nlGenerateBtn) nlGenerateBtn.addEventListener('click', handleNLGenerate);
+    if (nlInput) {
+      nlInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNLGenerate(); }
+      });
+    }
+
+    if (regexGenerateBtn) regexGenerateBtn.addEventListener('click', handleRegexGenerate);
+    if (regexInput) {
+      regexInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleRegexGenerate(); }
+      });
+    }
+
+    if (nlClearBtn && nlInput) {
       nlClearBtn.addEventListener('click', function () {
         nlInput.value = '';
         clearFeedback();
@@ -1406,10 +1629,38 @@
       });
     }
 
+    if (regexClearBtn && regexInput) {
+      regexClearBtn.addEventListener('click', function () {
+        regexInput.value = '';
+        clearFeedback();
+        regexChips.forEach(function (c) { c.classList.remove('active'); });
+        regexInput.focus();
+      });
+    }
+
+    // Insert operator buttons
+    regexOpBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var op = btn.getAttribute('data-insert');
+        if (!op || !regexInput) return;
+        var start = regexInput.selectionStart || 0;
+        var end = regexInput.selectionEnd || 0;
+        var val = regexInput.value;
+        if (op === '()') {
+          regexInput.value = val.substring(0, start) + '(' + val.substring(start, end) + ')' + val.substring(end);
+          regexInput.selectionStart = regexInput.selectionEnd = start + 1;
+        } else {
+          regexInput.value = val.substring(0, start) + op + val.substring(end);
+          regexInput.selectionStart = regexInput.selectionEnd = start + op.length;
+        }
+        regexInput.focus();
+      });
+    });
+
     exampleChips.forEach(function (chip) {
       chip.addEventListener('click', function () {
         var promptText = chip.getAttribute('data-prompt');
-        if (promptText) {
+        if (promptText && nlInput) {
           nlInput.value = promptText;
           exampleChips.forEach(function (c) { c.classList.remove('active'); });
           chip.classList.add('active');
@@ -1418,9 +1669,22 @@
         }
       });
     });
+
+    regexChips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var reText = chip.getAttribute('data-regex');
+        if (reText && regexInput) {
+          regexInput.value = reText;
+          regexChips.forEach(function (c) { c.classList.remove('active'); });
+          chip.classList.add('active');
+          clearFeedback();
+          regexInput.focus();
+        }
+      });
+    });
   }
 
-  initNaturalLanguageDFA();
+  initUniversalPipeline();
 
   // Manual "Verify DFA Equivalence" button listener
   var runHKBtn = $('runHopcroftKarpBtn');

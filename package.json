@@ -1,0 +1,31 @@
+{
+  "name": "dfa-minimization-project-final",
+  "version": "1.0.0",
+  "description": "**CSET302 Automata Theory and Computability · Topic 3: DFA Minimization Simulator**   **Bennett University, School of Computer Science Engineering and Technology (SCSET)**   **Faculty Mentor:** Dr. Dinesh Prasad Sahu   **Team Members:** Snehil (S24CSEU0551), Tanya Sinha (S24CSEU0583), Suhani (S24CSEU0567), Kartik Lamba (S24CSEU0642)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "node server/server.js",
+    "test": "node Milestone-2/SourceCode/tests/test.js && node Milestone-2/SourceCode/tests/test-pipeline.js && node Milestone-2/SourceCode/tests/test-nl.js && node Milestone-2/SourceCode/tests/test-hopcroft-karp.js && node Milestone-2/SourceCode/tests/test-graph-layout.js && node tests/test-gemini-integration.js",
+    "test:gemini": "node tests/test-gemini-integration.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kaartikkkk/DFA-Minimization-Project-Final.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Kaartikkkk/DFA-Minimization-Project-Final/issues"
+  },
+  "homepage": "https://github.com/Kaartikkkk/DFA-Minimization-Project-Final#readme",
+  "dependencies": {
+    "@google/genai": "^3.6.1",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.5"
+  }
+}
