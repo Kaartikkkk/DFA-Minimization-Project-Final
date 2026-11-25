@@ -750,6 +750,21 @@
 
     var defs = el('defs', {}, svg);
 
+    // Embedded standalone styles to guarantee 100% fidelity when exported or saved as SVG/PNG
+    var styleEl = el('style', { type: 'text/css' }, defs);
+    styleEl.textContent = [
+      '.edge { fill: none !important; stroke: #475569; stroke-width: 2.2px; stroke-linecap: round; stroke-linejoin: round; }',
+      '.edge.hot { stroke: #f59e0b !important; stroke-width: 3px !important; }',
+      '.edge.dim { opacity: 0.25; }',
+      '.edge.start { fill: none !important; stroke: #7c3aed !important; stroke-width: 2.4px !important; }',
+      '.edge-badge-bg { fill: #ffffff !important; stroke: #cbd5e1 !important; stroke-width: 1.2px !important; }',
+      '.edge-badge-bg.hot { fill: #fef3c7 !important; stroke: #f59e0b !important; }',
+      '.edge-badge-text { fill: #0f172a !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 11.5px !important; font-weight: 700 !important; text-anchor: middle !important; dominant-baseline: central !important; }',
+      '.edge-badge-text.hot { fill: #b45309 !important; }',
+      '.node-label { fill: #0f172a !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 14.5px !important; font-weight: 700 !important; text-anchor: middle !important; dominant-baseline: central !important; }',
+      '.start-badge-label { fill: #ffffff !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 11px !important; font-weight: 700 !important; text-anchor: middle !important; dominant-baseline: central !important; }'
+    ].join('\n');
+
     // Drop shadow filter for states
     var shadowFilter = el('filter', { id: id + 'shadow', x: '-25%', y: '-25%', width: '150%', height: '150%' }, defs);
     el('feDropShadow', { dx: '0', dy: '3', stdDeviation: '3.5', 'flood-color': '#0f172a', 'flood-opacity': '0.08' }, shadowFilter);
@@ -807,6 +822,12 @@
       el('path', {
         d: d,
         class: cls,
+        fill: 'none',
+        stroke: hot ? '#f59e0b' : '#475569',
+        'stroke-width': hot ? '3' : '2.2',
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        opacity: dim ? '0.25' : '1',
         'marker-end': 'url(#' + id + (hot ? 'h' : 'n') + ')'
       }, gEdges);
 
@@ -867,6 +888,9 @@
         height: 22,
         rx: 6,
         ry: 6,
+        fill: L.hot ? '#fef3c7' : '#ffffff',
+        stroke: L.hot ? '#f59e0b' : '#cbd5e1',
+        'stroke-width': '1.2',
         class: 'edge-badge-bg' + (L.hot ? ' hot' : ''),
         filter: 'url(#' + id + 'bshadow)'
       }, g);
@@ -874,6 +898,12 @@
       var t = el('text', {
         x: L.x,
         y: L.y + 4.2,
+        fill: L.hot ? '#b45309' : '#0f172a',
+        'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        'font-size': '11.5px',
+        'font-weight': '700',
+        'text-anchor': 'middle',
+        'dominant-baseline': 'central',
         class: 'edge-badge-text' + (L.hot ? ' hot' : '')
       }, g);
       t.textContent = L.text;
@@ -919,7 +949,17 @@
       }
 
       // State label
-      var label = el('text', { x: p.x, y: p.y + 4.8, class: 'node-label' }, g);
+      var label = el('text', {
+        x: p.x,
+        y: p.y + 4.8,
+        fill: '#0f172a',
+        'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        'font-size': '14.5px',
+        'font-weight': '700',
+        'text-anchor': 'middle',
+        'dominant-baseline': 'central',
+        class: 'node-label'
+      }, g);
       label.textContent = s;
 
       // Start state incoming arrow and badge
@@ -927,6 +967,9 @@
         el('line', {
           x1: p.x - p.r - 52, y1: p.y,
           x2: p.x - p.r - 3, y2: p.y,
+          stroke: '#7c3aed',
+          'stroke-width': '2.4',
+          fill: 'none',
           class: 'edge start',
           'marker-end': 'url(#' + id + 'n)'
         }, g);
@@ -940,6 +983,12 @@
 
         var st = el('text', {
           x: p.x - p.r - 46, y: p.y + 4,
+          fill: '#ffffff',
+          'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+          'font-size': '11px',
+          'font-weight': '700',
+          'text-anchor': 'middle',
+          'dominant-baseline': 'central',
           class: 'start-badge-label'
         }, badgeG);
         st.textContent = 'Start';

@@ -1329,23 +1329,84 @@
     });
   }
 
-  // Quick Action: Save as Image (SVG)
+  // Quick Action: Save as Image (High-Resolution PNG with SVG fallback)
   if ($('exportImageBtn')) {
     $('exportImageBtn').addEventListener('click', function () {
       var svg = $('graphMain').querySelector('svg');
       if (!svg) return;
+
+      var clone = svg.cloneNode(true);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.removeAttribute('style');
+
+      // Determine dimensions from viewBox
+      var vbAttr = clone.getAttribute('viewBox');
+      var vbX = 0, vbY = 0, vbW = 1200, vbH = 600;
+      if (vbAttr) {
+        var parts = vbAttr.split(/\s+|,/).map(Number);
+        if (parts.length === 4 && !parts.some(isNaN)) {
+          vbX = parts[0]; vbY = parts[1]; vbW = parts[2]; vbH = parts[3];
+        }
+      }
+
+      // Add a clean solid white backdrop rectangle behind the entire diagram
+      var bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      bgRect.setAttribute('x', vbX - 50);
+      bgRect.setAttribute('y', vbY - 50);
+      bgRect.setAttribute('width', vbW + 100);
+      bgRect.setAttribute('height', vbH + 100);
+      bgRect.setAttribute('fill', '#ffffff');
+      clone.insertBefore(bgRect, clone.firstChild);
+
       var serializer = new XMLSerializer();
-      var source = serializer.serializeToString(svg);
+      var source = serializer.serializeToString(clone);
       if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
         source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
       }
-      var blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'dfa-visualization.svg';
-      a.click();
-      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+
+      // Rasterize to high-resolution crisp PNG (2x retina)
+      var scale = 2;
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(vbW * scale);
+      canvas.height = Math.round(vbH * scale);
+      var ctx = canvas.getContext('2d');
+
+      var img = new Image();
+      var svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      var url = URL.createObjectURL(svgBlob);
+
+      img.onload = function () {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+
+        try {
+          var a = document.createElement('a');
+          a.download = 'dfa-visualization.png';
+          a.href = canvas.toDataURL('image/png');
+          a.click();
+        } catch (e) {
+          downloadSvgFile(source);
+        }
+      };
+
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        downloadSvgFile(source);
+      };
+
+      img.src = url;
+
+      function downloadSvgFile(src) {
+        var blob = new Blob([src], { type: 'image/svg+xml;charset=utf-8' });
+        var u = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = u;
+        a.download = 'dfa-visualization.svg';
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(u); }, 1000);
+      }
     });
   }
 
