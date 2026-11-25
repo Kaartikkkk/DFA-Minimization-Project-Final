@@ -112,7 +112,7 @@ function isConfigured() {
  * Get active model name from environment.
  */
 function getModelName() {
-  return process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  return process.env.GEMINI_MODEL || 'gemini-3.5-flash';
 }
 
 /**
