@@ -1266,9 +1266,9 @@ svg:not([class*="graph"]):not([class*="dfa"]):not(.hero-automata-svg):not(.empty
   gap: 12px;
   align-items: stretch;
   margin-top: 8px;
-  min-height: 340px;
-  max-height: 420px;
-  height: 385px;
+  min-height: 440px;
+  max-height: 640px;
+  height: 490px;
   overflow: hidden;
 }
 
@@ -1276,8 +1276,8 @@ svg:not([class*="graph"]):not([class*="dfa"]):not(.hero-automata-svg):not(.empty
   border: 1px solid var(--border-color);
   border-radius: 12px;
   background: #ffffff;
-  min-height: 300px;
-  max-height: 420px;
+  min-height: 420px;
+  max-height: 640px;
   height: 100%;
   display: flex;
   flex-direction: column;
