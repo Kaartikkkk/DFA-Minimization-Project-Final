@@ -89,6 +89,36 @@ const cases = [
     text: 'Construct a minimum DFA that accepts all strings starting with 0 and ending with 1.',
     testAccepted: ['01', '001', '0101', '011'],
     testRejected: ['', '0', '1', '10', '11', '00']
+  },
+  {
+    name: 'Arithmetic – Binary numbers divisible by 3',
+    text: 'Construct a DFA for binary numbers divisible by 3.',
+    testAccepted: ['', '0', '11', '110', '1001', '1100'],
+    testRejected: ['1', '10', '100', '101', '111']
+  },
+  {
+    name: 'Threshold – At least two zeros',
+    text: 'Accept strings containing at least two 0s.',
+    testAccepted: ['00', '010', '1001', '000'],
+    testRejected: ['', '1', '0', '101', '111']
+  },
+  {
+    name: 'Relation – Starts and ends with same symbol',
+    text: 'Construct a DFA where strings start and end with the same symbol.',
+    testAccepted: ['0', '1', '00', '11', '010', '101', '0110'],
+    testRejected: ['', '01', '10', '011', '100']
+  },
+  {
+    name: 'Length – Length at least 2',
+    text: 'Accept strings of length at least 2.',
+    testAccepted: ['00', '01', '10', '11', '000', '1010'],
+    testRejected: ['', '0', '1']
+  },
+  {
+    name: 'Sequence – Every 0 is followed by 1',
+    text: 'Accept all strings where every 0 is followed by 1.',
+    testAccepted: ['', '1', '11', '01', '101', '0101', '1011'],
+    testRejected: ['0', '00', '010', '1001', '0110']
   }
 ];
 

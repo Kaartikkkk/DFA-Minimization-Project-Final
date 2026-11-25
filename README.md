@@ -194,7 +194,7 @@ DFA-Minimization-Project-Final/
 │       │   └── testcases.js               # Comprehensive test definitions for browser QA dashboard
 │       ├── tests/
 │       │   ├── test.js                    # Primary Node.js test runner (35 automated tests)
-│       │   ├── test-nl.js                 # Natural language synthesis test runner (14 automated tests)
+│       │   ├── test-nl.js                 # Natural language synthesis test runner (19 automated tests)
 │       │   ├── test-hopcroft-karp.js      # Hopcroft–Karp equivalence test runner (10 automated tests)
 │       │   ├── test-graph-layout.js       # Graph layout & edge collision test runner (15 automated tests)
 │       │   └── export-testcases.js        # Script to regenerate JSON machine files and CSV logs

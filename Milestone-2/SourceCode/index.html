@@ -312,7 +312,7 @@
             <div class="nl-card-body">
               <div class="nl-input-container">
                 <textarea id="nlInput" class="nl-textarea" rows="2"
-                  placeholder="Describe your language here, e.g. Construct a minimum DFA over {0,1} that accepts all strings ending with 01..."></textarea>
+                  placeholder="Describe any language or question in plain English (e.g. 'ends with 01', 'divisible by 3', 'at least two 0s', 'starts and ends with same symbol', 'every 0 followed by 1', 'even length')..."></textarea>
                 <button id="nlClearBtn" type="button" class="nl-clear-btn" title="Clear instruction" aria-label="Clear instruction">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -384,6 +384,22 @@
                   <button type="button" class="nl-chip" data-prompt="Construct a minimum DFA that accepts all binary strings having an even number of zeros and an odd number of ones.">
                     <span class="chip-tag">Compound</span>
                     <span class="chip-label">Even 0s and Odd 1s</span>
+                  </button>
+                  <button type="button" class="nl-chip" data-prompt="Construct a DFA for binary numbers divisible by 3.">
+                    <span class="chip-tag">Arithmetic</span>
+                    <span class="chip-label">Divisible by 3</span>
+                  </button>
+                  <button type="button" class="nl-chip" data-prompt="Accept strings containing at least two 0s.">
+                    <span class="chip-tag">Count</span>
+                    <span class="chip-label">At least two 0s</span>
+                  </button>
+                  <button type="button" class="nl-chip" data-prompt="Construct a DFA where strings start and end with the same symbol.">
+                    <span class="chip-tag">Relation</span>
+                    <span class="chip-label">Same start & end</span>
+                  </button>
+                  <button type="button" class="nl-chip" data-prompt="Accept all strings where every 0 is followed by 1.">
+                    <span class="chip-tag">Sequence</span>
+                    <span class="chip-label">Every 0 followed by 1</span>
                   </button>
                 </div>
               </div>
